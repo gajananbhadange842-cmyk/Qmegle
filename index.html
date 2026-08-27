@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Qmegle - Random Video Chat</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7ff;
+    color: #222;
+}
+
+/* HEADER */
+
+.header {
+    background: white;
+    padding: 18px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.logo {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.q {
+    color: #1677ff;
+}
+
+.megle {
+    color: orange;
+}
+
+
+/* CONTAINER */
+
+.container {
+    max-width: 1100px;
+    margin: 25px auto;
+    padding: 15px;
+    text-align: center;
+}
+
+
+/* VIDEO */
+
+.videos {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.video-box {
+    width: 450px;
+    max-width: 100%;
+    height: 320px;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: black;
+}
+
+.video-title {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    color: white;
+    background: rgba(0,0,0,0.6);
+    padding: 7px 12px;
+    border-radius: 7px;
+}
+
+
+/* STATUS */
+
+.status {
+    margin: 20px 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+
+/* BUTTONS */
+
+button {
+    padding: 13px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.start {
+    background: #1677ff;
+    color: white;
+}
+
+.next {
+    background: orange;
+    color: white;
+}
+
+.stop {
+    background: #e53935;
+    color: white;
+}
+
+.camera {
+    background: #673ab7;
+    color: white;
+}
+
+.mic {
+    background: #00897b;
+    color: white;
+}
+
+.report {
+    background: #d32f2f;
+    color: white;
+}
+
+
+/* CHAT */
+
+.chat-container {
+    max-width: 900px;
+    margin: 25px auto;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.chat-header {
+    background: #1677ff;
+    color: white;
+    padding: 15px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.messages {
+    height: 220px;
+    overflow-y: auto;
+    padding: 15px;
+    background: #f7f8fc;
+    text-align: left;
+}
+
+.message {
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    max-width: 75%;
+}
+
+.my-message {
+    margin-left: auto;
+    background: #d9ebff;
+    text-align: right;
+}
+
+.partner-message {
+    background: #e9e9e9;
+}
+
+.system-message {
+    max-width: 100%;
+    text-align: center;
+    background: transparent;
+    color: #777;
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+}
+
+#messageInput {
+    flex: 1;
+    padding: 13px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+#sendButton {
+    background: #1677ff;
+    color: white;
+}
+
+
+/* REPORT POPUP */
+
+.report-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-box {
+    background: white;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: left;
+}
+
+.report-box h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.report-option {
+    display: block;
+    padding: 12px;
+    margin: 8px 0;
+    background: #f1f1f1;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.report-option input {
+    margin-right: 10px;
+}
+
+.submit-report {
+    background: #d32f2f;
+    color: white;
+    width: 100%;
+}
+
+.cancel-report {
+    background: #777;
+    color: white;
+    width: 100%;
+}
+
+.info {
+    color: #666;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+
+@media (max-width: 600px) {
+
+    .video-box {
+        height: 250px;
+    }
+
+    .logo {
+        font-size: 30px;
+    }
+
+    .chat-input-area {
+        flex-direction: column;
+    }
+
+    #sendButton {
+        width: 100%;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- HEADER -->
+
+<div class="header">
+
+    <div class="logo">
+        <span class="q">Q</span><span class="megle">megle</span>
+    </div>
+
+</div>
+
+
+<div class="container">
+
+<h2>Random Video Chat</h2>
+
+
+<!-- VIDEO -->
+
+<div class="videos">
+
+    <div class="video-box">
+
+        <div class="video-title">
+            👤 आप
+        </div>
+
+        <video
+            id="myVideo"
+            autoplay
+            muted
+            playsinline>
+        </video>
+
+    </div>
+
+
+    <div class="video-box">
+
+        <div class="video-title">
+            👤 Stranger
+        </div>
+
+        <video
+            id="partnerVideo"
+            autoplay
+            playsinline>
+        </video>
+
+    </div>
+
+</div>
+
+
+<!-- STATUS -->
+
+<div
+    class="status"
+    id="status">
+
+    Start Chat दबाएँ
+
+</div>
+
+
+<!-- MAIN BUTTONS -->
+
+<div>
+
+    <button
+        class="start"
+        id="startButton">
+
+        🎥 Start Chat
+
+    </button>
+
+
+    <button
+        class="next"
+        id="nextButton"
+        disabled>
+
+        ⏭️ Next
+
+    </button>
+
+
+    <button
+        class="stop"
+        id="stopButton"
+        disabled>
+
+        🛑 Stop
+
+    </button>
+
+
+    <button
+        class="report"
+        id="reportButton"
+        disabled>
+
+        🚨 Report
+
+    </button>
+
+</div>
+
+
+<!-- CAMERA MIC -->
+
+<div>
+
+    <button
+        class="camera"
+        id="cameraButton"
+        disabled>
+
+        📹 Camera ON
+
+    </button>
+
+
+    <button
+        class="mic"
+        id="micButton"
+        disabled>
+
+        🎤 Mic ON
+
+    </button>
+
+</div>
+
+
+<!-- CHAT -->
+
+<div class="chat-container">
+
+    <div class="chat-header">
+        💬 Qmegle Chat
+    </div>
+
+
+    <div
+        class="messages"
+        id="messages">
+
+        <div class="message system-message">
+
+            Start Chat दबाकर किसी stranger से connect करें।
+
+        </div>
+
+    </div>
+
+
+    <div class="chat-input-area">
+
+        <input
+            type="text"
+            id="messageInput"
+            placeholder="Message लिखें..."
+            disabled>
+
+
+        <button
+            id="sendButton"
+            disabled>
+
+            Send
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<div class="info">
+
+    ⚠️ किसी भी गलत व्यवहार की Report करें।
+
+</div>
+
+</div>
+
+
+<!-- REPORT POPUP -->
+
+<div
+    class="report-overlay"
+    id="reportOverlay">
+
+    <div class="report-box">
+
+        <h2>🚨 Report User</h2>
+
+        <p>
+            Report करने का कारण चुनें:
+        </p>
+
+
+        <label class="report-option">
+
+            <input
+                type="radio"
+                name="reportReason"
+                value="Sexual / Adult Content">
+
+            🔞 Sexual / Adult Content
+
+        </label>
+
+
+        <label class="report-option">
+
+            <input
+                type="radio"
+                name="reportReason"
+                value="Harassment">
+
+            😡 Harassment
+
+        </label>
+
+
+        <label class="report-option">
+
+            <input
+                type="radio"
+                name="reportReason"
+                value="Abuse">
+
+            🤬 Abuse
+
+        </label>
+
+
+        <label class="report-option">
+
+            <input
+                type="radio"
+                name="reportReason"
+                value="Spam">
+
+            🚫 Spam
+
+        </label>
+
+
+        <label class="report-option">
+
+            <input
+                type="radio"
+                name="reportReason"
+                value="Other">
+
+            ⚠️ Other
+
+        </label>
+
+
+        <button
+            class="submit-report"
+            id="submitReport">
+
+            🚨 Submit Report
+
+        </button>
+
+
+        <button
+            class="cancel-report"
+            id="cancelReport">
+
+            Cancel
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- SOCKET.IO -->
+
+<script src="/socket.io/socket.io.js"></script>
+
+
+<script>
+
+const socket = io();
+
+
+// =================================
+// ELEMENTS
+// =================================
+
+const myVideo =
+    document.getElementById("myVideo");
+
+const partnerVideo =
+    document.getElementById("partnerVideo");
+
+const startButton =
+    document.getElementById("startButton");
+
+const nextButton =
+    document.getElementById("nextButton");
+
+const stopButton =
+    document.getElementById("stopButton");
+
+const reportButton =
+    document.getElementById("reportButton");
+
+const cameraButton =
+    document.getElementById("cameraButton");
+
+const micButton =
+    document.getElementById("micButton");
+
+const status =
+    document.getElementById("status");
+
+const messages =
+    document.getElementById("messages");
+
+const messageInput =
+    document.getElementById("messageInput");
+
+const sendButton =
+    document.getElementById("sendButton");
+
+const reportOverlay =
+    document.getElementById("reportOverlay");
+
+const submitReport =
+    document.getElementById("submitReport");
+
+const cancelReport =
+    document.getElementById("cancelReport");
+
+
+// =================================
+// VARIABLES
+// =================================
+
+let localStream = null;
+
+let peerConnection = null;
+
+let partnerId = null;
+
+let cameraOn = true;
+
+let micOn = true;
+
+
+// =================================
+// WEBRTC
+// =================================
+
+const configuration = {
+
+    iceServers: [
+
+        {
+            urls:
+            "stun:stun.l.google.com:19302"
+        }
+
+    ]
+
+};
+
+
+// =================================
+// CAMERA
+// =================================
+
+async function startCamera() {
+
+    try {
+
+        localStream =
+            await navigator.mediaDevices
+            .getUserMedia({
+
+                video: true,
+
+                audio: true
+
+            });
+
+
+        myVideo.srcObject =
+            localStream;
+
+
+        cameraOn = true;
+
+        micOn = true;
+
+
+        updateControls();
+
+
+        return true;
+
+    }
+
+    catch(error) {
+
+        console.error(error);
+
+        status.innerText =
+            "❌ Camera/Microphone की permission दें।";
+
+        return false;
+
+    }
+
+}
+
+
+// =================================
+// PEER CONNECTION
+// =================================
+
+function createPeerConnection() {
+
+    if(peerConnection) {
+
+        peerConnection.close();
+
+    }
+
+
+    peerConnection =
+        new RTCPeerConnection(
+            configuration
+        );
+
+
+    if(localStream) {
+
+        localStream
+        .getTracks()
+        .forEach(track => {
+
+            peerConnection.addTrack(
+                track,
+                localStream
+            );
+
+        });
+
+    }
+
+
+    peerConnection.ontrack =
+        event => {
+
+            if(event.streams[0]) {
+
+                partnerVideo.srcObject =
+                    event.streams[0];
+
+            }
+
+        };
+
+
+    peerConnection.onicecandidate =
+        event => {
+
+            if(
+                event.candidate &&
+                partnerId
+            ) {
+
+                socket.emit(
+                    "signal",
+                    {
+
+                        type:
+                        "candidate",
+
+                        candidate:
+                        event.candidate
+
+                    }
+                );
+
+            }
+
+        };
+
+}
+
+
+// =================================
+// START
+// =================================
+
+startButton.onclick =
+async () => {
+
+    startButton.disabled =
+        true;
+
+
+    const ok =
+        await startCamera();
+
+
+    if(!ok) {
+
+        startButton.disabled =
+            false;
+
+        return;
+
+    }
+
+
+    nextButton.disabled =
+        false;
+
+    stopButton.disabled =
+        false;
+
+    cameraButton.disabled =
+        false;
+
+    micButton.disabled =
+        false;
+
+
+    status.innerText =
+        "🔎 Stranger खोज रहे हैं...";
+
+
+    socket.emit(
+        "findPartner"
+    );
+
+};
+
+
+// =================================
+// WAITING
+// =================================
+
+socket.on(
+    "waiting",
+    () => {
+
+        status.innerText =
+            "⏳ Stranger का इंतजार हो रहा है...";
+
+    }
+);
+
+
+// =================================
+// MATCHED
+// =================================
+
+socket.on(
+    "matched",
+    async id => {
+
+        partnerId =
+            id;
+
+
+        status.innerText =
+            "🎉 Stranger मिल गया!";
+
+
+        reportButton.disabled =
+            false;
+
+
+        enableChat();
+
+
+        createPeerConnection();
+
+
+        if(socket.id < partnerId) {
+
+            const offer =
+                await peerConnection
+                .createOffer();
+
+
+            await peerConnection
+            .setLocalDescription(
+                offer
+            );
+
+
+            socket.emit(
+                "signal",
+                {
+
+                    type:
+                    "offer",
+
+                    offer:
+                    offer
+
+                }
+            );
+
+        }
+
+    }
+);
+
+
+// =================================
+// SIGNAL
+// =================================
+
+socket.on(
+    "signal",
+    async data => {
+
+        if(!peerConnection) {
+
+            createPeerConnection();
+
+        }
+
+
+        if(
+            data.signal.type ===
+            "offer"
+        ) {
+
+            await peerConnection
+            .setRemoteDescription(
+                new RTCSessionDescription(
+                    data.signal.offer
+                )
+            );
+
+
+            const answer =
+                await peerConnection
+                .createAnswer();
+
+
+            await peerConnection
+            .setLocalDescription(
+                answer
+            );
+
+
+            socket.emit(
+                "signal",
+                {
+
+                    type:
+                    "answer",
+
+                    answer:
+                    answer
+
+                }
+            );
+
+        }
+
+
+        else if(
+            data.signal.type ===
+            "answer"
+        ) {
+
+            await peerConnection
+            .setRemoteDescription(
+                new RTCSessionDescription(
+                    data.signal.answer
+                )
+            );
+
+        }
+
+
+        else if(
+            data.signal.type ===
+            "candidate"
+        ) {
+
+            try {
+
+                await peerConnection
+                .addIceCandidate(
+                    data.signal.candidate
+                );
+
+            }
+
+            catch(error) {
+
+                console.error(error);
+
+            }
+
+        }
+
+    }
+);
+
+
+// =================================
+// CAMERA ON/OFF
+// =================================
+
+cameraButton.onclick =
+() => {
+
+    if(!localStream)
+        return;
+
+
+    const track =
+        localStream
+        .getVideoTracks()[0];
+
+
+    if(!track)
+        return;
+
+
+    cameraOn =
+        !cameraOn;
+
+
+    track.enabled =
+        cameraOn;
+
+
+    updateControls();
+
+};
+
+
+// =================================
+// MIC ON/OFF
+// =================================
+
+micButton.onclick =
+() => {
+
+    if(!localStream)
+        return;
+
+
+    const track =
+        localStream
+        .getAudioTracks()[0];
+
+
+    if(!track)
+        return;
+
+
+    micOn =
+        !micOn;
+
+
+    track.enabled =
+        micOn;
+
+
+    updateControls();
+
+};
+
+
+// =================================
+// UPDATE CONTROLS
+// =================================
+
+function updateControls() {
+
+    cameraButton.innerText =
+        cameraOn
+        ? "📹 Camera ON"
+        : "📹 Camera OFF";
+
+
+    micButton.innerText =
+        micOn
+        ? "🎤 Mic ON"
+        : "🔇 Mic OFF";
+
+}
+
+
+// =================================
+// NEXT
+// =================================
+
+nextButton.onclick =
+() => {
+
+    partnerVideo.srcObject =
+        null;
+
+
+    partnerId =
+        null;
+
+
+    reportButton.disabled =
+        true;
+
+
+    disableChat();
+
+
+    if(peerConnection) {
+
+        peerConnection.close();
+
+        peerConnection =
+            null;
+
+    }
+
+
+    status.innerText =
+        "🔎 नया Stranger खोज रहे हैं...";
+
+
+    socket.emit(
+        "next"
+    );
+
+};
+
+
+// =================================
+// STOP
+// =================================
+
+stopButton.onclick =
+() => {
+
+    if(peerConnection) {
+
+        peerConnection.close();
+
+        peerConnection =
+            null;
+
+    }
+
+
+    partnerVideo.srcObject =
+        null;
+
+
+    partnerId =
+        null;
+
+
+    if(localStream) {
+
+        localStream
+        .getTracks()
+        .forEach(
+            track =>
+            track.stop()
+        );
+
+
+        localStream =
+            null;
+
+    }
+
+
+    myVideo.srcObject =
+        null;
+
+
+    disableChat();
+
+
+    reportButton.disabled =
+        true;
+
+
+    cameraButton.disabled =
+        true;
+
+    micButton.disabled =
+        true;
+
+
+    nextButton.disabled =
+        true;
+
+    stopButton.disabled =
+        true;
+
+    startButton.disabled =
+        false;
+
+
+    status.innerText =
+        "🛑 Chat बंद हो गया।";
+
+};
+
+
+// =================================
+// PARTNER DISCONNECTED
+// =================================
+
+socket.on(
+    "partnerDisconnected",
+    () => {
+
+        partnerVideo.srcObject =
+            null;
+
+
+        partnerId =
+            null;
+
+
+        reportButton.disabled =
+            true;
+
+
+        disableChat();
+
+
+        if(peerConnection) {
+
+            peerConnection.close();
+
+            peerConnection =
+                null;
+
+        }
+
+
+        status.innerText =
+            "👋 Stranger चला गया।";
+
+    }
+);
+
+
+// =================================
+// CHAT ENABLE
+// =================================
+
+function enableChat() {
+
+    messageInput.disabled =
+        false;
+
+    sendButton.disabled =
+        false;
+
+    messageInput.focus();
+
+}
+
+
+function disableChat() {
+
+    messageInput.disabled =
+        true;
+
+    sendButton.disabled =
+        true;
+
+    messageInput.value =
+        "";
+
+}
+
+
+// =================================
+// SEND MESSAGE
+// =================================
+
+function sendMessage() {
+
+    const message =
+        messageInput.value.trim();
+
+
+    if(!message)
+        return;
+
+
+    if(!partnerId)
+        return;
+
+
+    socket.emit(
+        "chatMessage",
+        message
+    );
+
+
+    addMessage(
+        "आप: " + message,
+        "my-message"
+    );
+
+
+    messageInput.value =
+        "";
+
+}
+
+
+sendButton.onclick =
+sendMessage;
+
+
+messageInput.addEventListener(
+    "keydown",
+    event => {
+
+        if(event.key === "Enter") {
+
+            sendMessage();
+
+        }
+
+    }
+);
+
+
+// =================================
+// RECEIVE MESSAGE
+// =================================
+
+socket.on(
+    "chatMessage",
+    message => {
+
+        addMessage(
+            "Stranger: " + message,
+            "partner-message"
+        );
+
+    }
+);
+
+
+// =================================
+// ADD MESSAGE
+// =================================
+
+function addMessage(
+    text,
+    className
+) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.className =
+        "message " +
+        className;
+
+
+    div.innerText =
+        text;
+
+
+    messages.appendChild(
+        div
+    );
+
+
+    messages.scrollTop =
+        messages.scrollHeight;
+
+}
+
+
+// =================================
+// REPORT OPEN
+// =================================
+
+reportButton.onclick =
+() => {
+
+    if(!partnerId)
+        return;
+
+
+    reportOverlay.style.display =
+        "flex";
+
+};
+
+
+// =================================
+// REPORT CANCEL
+// =================================
+
+cancelReport.onclick =
+() => {
+
+    reportOverlay.style.display =
+        "none";
+
+};
+
+
+// =================================
+// SUBMIT REPORT
+// =================================
+
+submitReport.onclick =
+() => {
+
+    const selected =
+        document.querySelector(
+            'input[name="reportReason"]:checked'
+        );
+
+
+    if(!selected) {
+
+        alert(
+            "कृपया Report का कारण चुनें।"
+        );
+
+        return;
+
+    }
+
+
+    socket.emit(
+        "reportUser",
+        {
+
+            reason:
+                selected.value
+
+        }
+    );
+
+
+    reportOverlay.style.display =
+        "none";
+
+
+    alert(
+        "🚨 Report भेज दी गई है।"
+    );
+
+
+    // Report के बाद Next
+
+    nextButton.click();
+
+};
+
+</script>
+
+</body>
+</html>
