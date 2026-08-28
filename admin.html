@@ -1,0 +1,853 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Qmegle Admin Panel</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7ff;
+    color: #222;
+}
+
+.header {
+    background: #1677ff;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.logo {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 15px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+input {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+button {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 16px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 4px;
+}
+
+.login-btn {
+    background: #1677ff;
+    color: white;
+    width: 100%;
+}
+
+.refresh {
+    background: #1677ff;
+    color: white;
+}
+
+.review {
+    background: #00897b;
+    color: white;
+}
+
+.delete {
+    background: #e53935;
+    color: white;
+}
+
+.logout {
+    background: #555;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.85;
+}
+
+.error {
+    color: #d32f2f;
+    margin-top: 10px;
+}
+
+.success {
+    color: #00897b;
+    margin-top: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+.report {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 18px;
+    margin: 15px 0;
+    background: #fafafa;
+}
+
+.report.new {
+    border-left: 5px solid #e53935;
+}
+
+.report.reviewed {
+    border-left: 5px solid #00897b;
+}
+
+.report-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.info {
+    color: #555;
+    line-height: 1.7;
+    word-break: break-word;
+}
+
+.status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    background: #eee;
+}
+
+.empty {
+    text-align: center;
+    padding: 40px;
+    color: #777;
+}
+
+@media (max-width: 600px) {
+
+    .container {
+        margin: 15px auto;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    button {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+    <div class="logo">
+        Qmegle Admin
+    </div>
+
+    <div>
+        Report Management Panel
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- LOGIN -->
+
+    <div class="card" id="loginBox">
+
+        <h2>🔐 Admin Login</h2>
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Admin Password"
+            autocomplete="current-password"
+        >
+
+        <button
+            class="login-btn"
+            onclick="login()"
+        >
+            Login
+        </button>
+
+        <div id="loginMessage"></div>
+
+    </div>
+
+
+    <!-- ADMIN PANEL -->
+
+    <div
+        id="adminPanel"
+        class="hidden"
+    >
+
+        <div class="card">
+
+            <h2>
+                🚨 User Reports
+            </h2>
+
+            <button
+                class="refresh"
+                onclick="loadReports()"
+            >
+                🔄 Refresh
+            </button>
+
+            <button
+                class="logout"
+                onclick="logout()"
+            >
+                🚪 Logout
+            </button>
+
+            <div id="message"></div>
+
+        </div>
+
+
+        <div
+            class="card"
+            id="reportsContainer"
+        >
+
+            <div class="empty">
+                Loading reports...
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let adminToken =
+    localStorage.getItem(
+        "qmegleAdminToken"
+    );
+
+
+/* =====================================
+   LOGIN
+===================================== */
+
+async function login() {
+
+    const password =
+        document
+        .getElementById("password")
+        .value;
+
+    const message =
+        document
+        .getElementById("loginMessage");
+
+    if (!password) {
+
+        message.className =
+            "error";
+
+        message.innerText =
+            "Password डालें।";
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/login",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            password:
+                                password
+                        })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            message.className =
+                "error";
+
+            message.innerText =
+                data.error ||
+                "Login failed.";
+
+            return;
+        }
+
+        adminToken =
+            data.token;
+
+        localStorage.setItem(
+            "qmegleAdminToken",
+            adminToken
+        );
+
+        document
+            .getElementById(
+                "loginBox"
+            )
+            .classList
+            .add("hidden");
+
+        document
+            .getElementById(
+                "adminPanel"
+            )
+            .classList
+            .remove("hidden");
+
+        loadReports();
+
+    } catch (error) {
+
+        message.className =
+            "error";
+
+        message.innerText =
+            "Server connection error.";
+
+        console.error(error);
+    }
+}
+
+
+/* =====================================
+   LOAD REPORTS
+===================================== */
+
+async function loadReports() {
+
+    const container =
+        document.getElementById(
+            "reportsContainer"
+        );
+
+    container.innerHTML =
+        '<div class="empty">Loading reports...</div>';
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/reports",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " +
+                            adminToken
+                    }
+                }
+            );
+
+        if (
+            response.status ===
+            401
+        ) {
+
+            logout();
+
+            return;
+        }
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            container.innerHTML =
+                `<div class="empty">
+                    ❌ ${escapeHtml(
+                        data.error ||
+                        "Could not load reports."
+                    )}
+                </div>`;
+
+            return;
+        }
+
+        displayReports(
+            data.reports || []
+        );
+
+    } catch (error) {
+
+        container.innerHTML =
+            `<div class="empty">
+                ❌ Server connection error.
+            </div>`;
+
+        console.error(error);
+    }
+}
+
+
+/* =====================================
+   DISPLAY REPORTS
+===================================== */
+
+function displayReports(
+    reports
+) {
+
+    const container =
+        document.getElementById(
+            "reportsContainer"
+        );
+
+    if (!reports.length) {
+
+        container.innerHTML =
+            `<div class="empty">
+                ✅ No reports found.
+            </div>`;
+
+        return;
+    }
+
+    container.innerHTML = "";
+
+    reports.forEach(
+        report => {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+            const status =
+                report.status ||
+                "new";
+
+            div.className =
+                "report " +
+                status;
+
+            const date =
+                report.timestamp
+                ? new Date(
+                    report.timestamp
+                ).toLocaleString()
+                : "Unknown";
+
+            div.innerHTML = `
+
+                <div class="report-title">
+                    🚨 Report
+                </div>
+
+                <div class="info">
+
+                    <strong>Reason:</strong>
+                    ${escapeHtml(
+                        report.reason ||
+                        "Unknown"
+                    )}
+
+                    <br>
+
+                    <strong>Reporter ID:</strong>
+                    ${escapeHtml(
+                        report.reporterId ||
+                        "Unknown"
+                    )}
+
+                    <br>
+
+                    <strong>Reported User ID:</strong>
+                    ${escapeHtml(
+                        report.reportedUserId ||
+                        "Unknown"
+                    )}
+
+                    <br>
+
+                    <strong>Time:</strong>
+                    ${escapeHtml(date)}
+
+                    <br><br>
+
+                    <span class="status">
+                        ${escapeHtml(status)}
+                    </span>
+
+                </div>
+
+                <div style="margin-top:15px;">
+
+                    ${
+                        status !== "reviewed"
+                        ?
+                        `<button
+                            class="review"
+                            onclick="reviewReport('${report._id}')"
+                        >
+                            ✅ Mark Reviewed
+                        </button>`
+                        :
+                        ""
+                    }
+
+                    <button
+                        class="delete"
+                        onclick="deleteReport('${report._id}')"
+                    >
+                        🗑️ Delete
+                    </button>
+
+                </div>
+            `;
+
+            container.appendChild(
+                div
+            );
+        }
+    );
+}
+
+
+/* =====================================
+   REVIEW REPORT
+===================================== */
+
+async function reviewReport(
+    id
+) {
+
+    if (!id) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/reports/" +
+                encodeURIComponent(id) +
+                "/review",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " +
+                            adminToken
+                    }
+                }
+            );
+
+        if (
+            response.status ===
+            401
+        ) {
+
+            logout();
+
+            return;
+        }
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showMessage(
+                data.error ||
+                "Could not review report.",
+                "error"
+            );
+
+            return;
+        }
+
+        showMessage(
+            "Report marked as reviewed.",
+            "success"
+        );
+
+        loadReports();
+
+    } catch (error) {
+
+        showMessage(
+            "Server connection error.",
+            "error"
+        );
+
+        console.error(error);
+    }
+}
+
+
+/* =====================================
+   DELETE REPORT
+===================================== */
+
+async function deleteReport(
+    id
+) {
+
+    if (!id) {
+        return;
+    }
+
+    const confirmed =
+        confirm(
+            "क्या आप यह report delete करना चाहते हैं?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/reports/" +
+                encodeURIComponent(id),
+                {
+                    method:
+                        "DELETE",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " +
+                            adminToken
+                    }
+                }
+            );
+
+        if (
+            response.status ===
+            401
+        ) {
+
+            logout();
+
+            return;
+        }
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showMessage(
+                data.error ||
+                "Could not delete report.",
+                "error"
+            );
+
+            return;
+        }
+
+        showMessage(
+            "Report deleted.",
+            "success"
+        );
+
+        loadReports();
+
+    } catch (error) {
+
+        showMessage(
+            "Server connection error.",
+            "error"
+        );
+
+        console.error(error);
+    }
+}
+
+
+/* =====================================
+   LOGOUT
+===================================== */
+
+function logout() {
+
+    localStorage.removeItem(
+        "qmegleAdminToken"
+    );
+
+    adminToken =
+        null;
+
+    document
+        .getElementById(
+            "adminPanel"
+        )
+        .classList
+        .add("hidden");
+
+    document
+        .getElementById(
+            "loginBox"
+        )
+        .classList
+        .remove("hidden");
+
+    document
+        .getElementById(
+            "password"
+        )
+        .value = "";
+}
+
+
+/* =====================================
+   MESSAGE
+===================================== */
+
+function showMessage(
+    text,
+    type
+) {
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+    message.className =
+        type;
+
+    message.innerText =
+        text;
+
+    setTimeout(
+        () => {
+
+            message.innerText =
+                "";
+
+        },
+        3000
+    );
+}
+
+
+/* =====================================
+   SECURITY
+===================================== */
+
+function escapeHtml(
+    value
+) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* =====================================
+   ENTER KEY
+===================================== */
+
+document
+    .getElementById("password")
+    .addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key ===
+                "Enter"
+            ) {
+
+                login();
+            }
+        }
+    );
+
+
+/* =====================================
+   AUTO LOGIN
+===================================== */
+
+if (adminToken) {
+
+    document
+        .getElementById(
+            "loginBox"
+        )
+        .classList
+        .add("hidden");
+
+    document
+        .getElementById(
+            "adminPanel"
+        )
+        .classList
+        .remove("hidden");
+
+    loadReports();
+}
+
+</script>
+
+</body>
+</html>
+```
