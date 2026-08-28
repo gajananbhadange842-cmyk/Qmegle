@@ -1,12 +1,38 @@
+```html
 <!DOCTYPE html>
 <html lang="hi">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Qmegle - Random Video Chat</title>
 
+<meta name="description"
+content="Qmegle is a free random video chat platform to meet new people online.">
+
+<meta name="keywords"
+content="Qmegle, random video chat, random chat, video chat with strangers">
+
+<meta name="robots" content="index, follow">
+
+<link rel="canonical"
+href="https://qmegle.onrender.com/">
+
+<!-- FAVICON -->
+
+<link rel="icon"
+type="image/svg+xml"
+href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='white'/%3E%3Ctext x='50' y='72' text-anchor='middle' font-size='70' font-family='Arial' font-weight='bold' fill='%231677ff'%3EQ%3C/text%3E%3C/svg%3E">
+
+
 <style>
+
+/* ================================
+   BASIC
+================================ */
 
 * {
     box-sizing: border-box;
@@ -19,7 +45,10 @@ body {
     color: #222;
 }
 
-/* HEADER */
+
+/* ================================
+   HEADER
+================================ */
 
 .header {
     background: white;
@@ -29,7 +58,7 @@ body {
 }
 
 .logo {
-    font-size: 36px;
+    font-size: 38px;
     font-weight: bold;
 }
 
@@ -42,7 +71,9 @@ body {
 }
 
 
-/* CONTAINER */
+/* ================================
+   CONTAINER
+================================ */
 
 .container {
     max-width: 1100px;
@@ -51,8 +82,19 @@ body {
     text-align: center;
 }
 
+h1 {
+    margin-bottom: 8px;
+}
 
-/* VIDEO */
+.subtitle {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+
+/* ================================
+   VIDEO
+================================ */
 
 .videos {
     display: flex;
@@ -65,17 +107,18 @@ body {
     width: 450px;
     max-width: 100%;
     height: 320px;
-    background: black;
+    background: #000;
     border-radius: 12px;
     overflow: hidden;
     position: relative;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
 }
 
 video {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    background: black;
+    background: #000;
 }
 
 .video-title {
@@ -84,22 +127,28 @@ video {
     left: 10px;
     z-index: 5;
     color: white;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.65);
     padding: 7px 12px;
     border-radius: 7px;
+    font-weight: bold;
 }
 
 
-/* STATUS */
+/* ================================
+   STATUS
+================================ */
 
 .status {
     margin: 20px 0;
     font-size: 18px;
     font-weight: bold;
+    min-height: 25px;
 }
 
 
-/* BUTTONS */
+/* ================================
+   BUTTONS
+================================ */
 
 button {
     padding: 13px 20px;
@@ -108,10 +157,15 @@ button {
     border-radius: 8px;
     font-size: 16px;
     cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    opacity: 0.85;
 }
 
 button:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
 }
 
@@ -146,11 +200,13 @@ button:disabled {
 }
 
 
-/* CHAT */
+/* ================================
+   CHAT
+================================ */
 
 .chat-container {
     max-width: 900px;
-    margin: 25px auto;
+    margin: 30px auto;
     background: white;
     border-radius: 12px;
     overflow: hidden;
@@ -178,6 +234,7 @@ button:disabled {
     border-radius: 10px;
     margin-bottom: 10px;
     max-width: 75%;
+    word-wrap: break-word;
 }
 
 .my-message {
@@ -217,7 +274,9 @@ button:disabled {
 }
 
 
-/* REPORT POPUP */
+/* ================================
+   REPORT
+================================ */
 
 .report-overlay {
     display: none;
@@ -268,21 +327,48 @@ button:disabled {
     width: 100%;
 }
 
+
+/* ================================
+   INFO
+================================ */
+
 .info {
-    color: #666;
-    font-size: 14px;
-    margin-top: 20px;
+    background: white;
+    max-width: 900px;
+    margin: 25px auto;
+    padding: 22px;
+    border-radius: 12px;
+    color: #555;
+    line-height: 1.6;
+    text-align: left;
 }
 
 
-@media (max-width: 600px) {
+/* ================================
+   FOOTER
+================================ */
 
-    .video-box {
-        height: 250px;
-    }
+.footer {
+    margin-top: 40px;
+    padding: 25px;
+    background: #222;
+    color: white;
+    text-align: center;
+}
+
+
+/* ================================
+   MOBILE
+================================ */
+
+@media (max-width: 600px) {
 
     .logo {
         font-size: 30px;
+    }
+
+    .video-box {
+        height: 250px;
     }
 
     .chat-input-area {
@@ -293,208 +379,258 @@ button:disabled {
         width: 100%;
     }
 
+    button {
+        width: 90%;
+        max-width: 320px;
+    }
+
 }
 
 </style>
+
 </head>
 
 
 <body>
 
 
-<!-- HEADER -->
+<!-- ================================
+     HEADER
+================================ -->
 
-<div class="header">
+<header class="header">
 
     <div class="logo">
+
         <span class="q">Q</span><span class="megle">megle</span>
+
     </div>
 
-</div>
+</header>
 
 
-<div class="container">
+<!-- ================================
+     MAIN
+================================ -->
 
-<h2>Random Video Chat</h2>
+<main class="container">
+
+    <h1>Random Video Chat</h1>
+
+    <p class="subtitle">
+        Meet new people and start a random video chat for free.
+    </p>
 
 
-<!-- VIDEO -->
+    <!-- ============================
+         VIDEOS
+    ============================= -->
 
-<div class="videos">
+    <div class="videos">
 
-    <div class="video-box">
 
-        <div class="video-title">
-            👤 आप
+        <!-- LOCAL VIDEO -->
+
+        <div class="video-box">
+
+            <div class="video-title">
+                👤 आप
+            </div>
+
+            <video
+                id="myVideo"
+                autoplay
+                muted
+                playsinline>
+            </video>
+
         </div>
 
-        <video
-            id="myVideo"
-            autoplay
-            muted
-            playsinline>
-        </video>
 
-    </div>
+        <!-- REMOTE VIDEO -->
 
+        <div class="video-box">
 
-    <div class="video-box">
+            <div class="video-title">
+                👤 Stranger
+            </div>
 
-        <div class="video-title">
-            👤 Stranger
+            <video
+                id="partnerVideo"
+                autoplay
+                playsinline>
+            </video>
+
         </div>
 
-        <video
-            id="partnerVideo"
-            autoplay
-            playsinline>
-        </video>
-
     </div>
 
-</div>
 
-
-<!-- STATUS -->
-
-<div
-    class="status"
-    id="status">
-
-    Start Chat दबाएँ
-
-</div>
-
-
-<!-- MAIN BUTTONS -->
-
-<div>
-
-    <button
-        class="start"
-        id="startButton">
-
-        🎥 Start Chat
-
-    </button>
-
-
-    <button
-        class="next"
-        id="nextButton"
-        disabled>
-
-        ⏭️ Next
-
-    </button>
-
-
-    <button
-        class="stop"
-        id="stopButton"
-        disabled>
-
-        🛑 Stop
-
-    </button>
-
-
-    <button
-        class="report"
-        id="reportButton"
-        disabled>
-
-        🚨 Report
-
-    </button>
-
-</div>
-
-
-<!-- CAMERA MIC -->
-
-<div>
-
-    <button
-        class="camera"
-        id="cameraButton"
-        disabled>
-
-        📹 Camera ON
-
-    </button>
-
-
-    <button
-        class="mic"
-        id="micButton"
-        disabled>
-
-        🎤 Mic ON
-
-    </button>
-
-</div>
-
-
-<!-- CHAT -->
-
-<div class="chat-container">
-
-    <div class="chat-header">
-        💬 Qmegle Chat
-    </div>
-
+    <!-- ============================
+         STATUS
+    ============================= -->
 
     <div
-        class="messages"
-        id="messages">
+        class="status"
+        id="status">
 
-        <div class="message system-message">
-
-            Start Chat दबाकर किसी stranger से connect करें।
-
-        </div>
+        Start Chat दबाएँ
 
     </div>
 
 
-    <div class="chat-input-area">
+    <!-- ============================
+         MAIN BUTTONS
+    ============================= -->
 
-        <input
-            type="text"
-            id="messageInput"
-            placeholder="Message लिखें..."
-            disabled>
+    <div>
+
+        <button
+            class="start"
+            id="startButton">
+
+            🎥 Start Chat
+
+        </button>
 
 
         <button
-            id="sendButton"
+            class="next"
+            id="nextButton"
             disabled>
 
-            Send
+            ⏭️ Next
+
+        </button>
+
+
+        <button
+            class="stop"
+            id="stopButton"
+            disabled>
+
+            🛑 Stop
+
+        </button>
+
+
+        <button
+            class="report"
+            id="reportButton"
+            disabled>
+
+            🚨 Report
 
         </button>
 
     </div>
 
-</div>
+
+    <!-- ============================
+         CAMERA / MIC
+    ============================= -->
+
+    <div>
+
+        <button
+            class="camera"
+            id="cameraButton"
+            disabled>
+
+            📹 Camera ON
+
+        </button>
 
 
-<div class="info">
+        <button
+            class="mic"
+            id="micButton"
+            disabled>
 
-    ⚠️ किसी भी गलत व्यवहार की Report करें।
+            🎤 Mic ON
 
-</div>
+        </button>
 
-</div>
+    </div>
 
 
-<!-- REPORT POPUP -->
+    <!-- ============================
+         CHAT
+    ============================= -->
+
+    <div class="chat-container">
+
+        <div class="chat-header">
+            💬 Qmegle Chat
+        </div>
+
+
+        <div
+            class="messages"
+            id="messages">
+
+            <div class="message system-message">
+
+                Start Chat दबाकर किसी stranger से connect करें।
+
+            </div>
+
+        </div>
+
+
+        <div class="chat-input-area">
+
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="Message लिखें..."
+                disabled>
+
+
+            <button
+                id="sendButton"
+                disabled>
+
+                Send
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================
+         INFO
+    ============================= -->
+
+    <div class="info">
+
+        <strong>Qmegle क्या है?</strong>
+
+        <p>
+            Qmegle एक random video chat platform है।
+            आप Start Chat दबाकर किसी random stranger से
+            video और text chat कर सकते हैं।
+        </p>
+
+        <p>
+            ⚠️ किसी भी गलत व्यवहार की Report करें।
+        </p>
+
+    </div>
+
+</main>
+
+
+<!-- ================================
+     REPORT POPUP
+================================ -->
 
 <div
     class="report-overlay"
     id="reportOverlay">
+
 
     <div class="report-box">
 
@@ -587,19 +723,36 @@ button:disabled {
 </div>
 
 
-<!-- SOCKET.IO -->
+<!-- ================================
+     FOOTER
+================================ -->
+
+<footer class="footer">
+
+    © 2026 Qmegle. All Rights Reserved.
+
+</footer>
+
+
+<!-- ================================
+     SOCKET.IO
+================================ -->
 
 <script src="/socket.io/socket.io.js"></script>
 
 
 <script>
 
+/* =========================================
+   SOCKET
+========================================= */
+
 const socket = io();
 
 
-// =================================
-// ELEMENTS
-// =================================
+/* =========================================
+   ELEMENTS
+========================================= */
 
 const myVideo =
     document.getElementById("myVideo");
@@ -647,9 +800,9 @@ const cancelReport =
     document.getElementById("cancelReport");
 
 
-// =================================
-// VARIABLES
-// =================================
+/* =========================================
+   VARIABLES
+========================================= */
 
 let localStream = null;
 
@@ -661,18 +814,23 @@ let cameraOn = true;
 
 let micOn = true;
 
+let started = false;
 
-// =================================
-// WEBRTC
-// =================================
+
+/* =========================================
+   WEBRTC CONFIG
+========================================= */
 
 const configuration = {
 
     iceServers: [
 
         {
-            urls:
-            "stun:stun.l.google.com:19302"
+            urls: "stun:stun.l.google.com:19302"
+        },
+
+        {
+            urls: "stun:stun1.l.google.com:19302"
         }
 
     ]
@@ -680,17 +838,16 @@ const configuration = {
 };
 
 
-// =================================
-// CAMERA
-// =================================
+/* =========================================
+   START CAMERA
+========================================= */
 
 async function startCamera() {
 
     try {
 
         localStream =
-            await navigator.mediaDevices
-            .getUserMedia({
+            await navigator.mediaDevices.getUserMedia({
 
                 video: true,
 
@@ -717,10 +874,15 @@ async function startCamera() {
 
     catch(error) {
 
-        console.error(error);
+        console.error(
+            "Camera error:",
+            error
+        );
+
 
         status.innerText =
-            "❌ Camera/Microphone की permission दें।";
+            "❌ Camera और Microphone की permission दें।";
+
 
         return false;
 
@@ -729,9 +891,9 @@ async function startCamera() {
 }
 
 
-// =================================
-// PEER CONNECTION
-// =================================
+/* =========================================
+   CREATE PEER CONNECTION
+========================================= */
 
 function createPeerConnection() {
 
@@ -747,6 +909,10 @@ function createPeerConnection() {
             configuration
         );
 
+
+    /* ================================
+       ADD LOCAL TRACKS
+    ================================= */
 
     if(localStream) {
 
@@ -764,10 +930,20 @@ function createPeerConnection() {
     }
 
 
+    /* ================================
+       RECEIVE REMOTE VIDEO
+    ================================= */
+
     peerConnection.ontrack =
         event => {
 
-            if(event.streams[0]) {
+            console.log(
+                "REMOTE TRACK RECEIVED"
+            );
+
+
+            if(event.streams &&
+               event.streams[0]) {
 
                 partnerVideo.srcObject =
                     event.streams[0];
@@ -776,6 +952,10 @@ function createPeerConnection() {
 
         };
 
+
+    /* ================================
+       ICE CANDIDATE
+    ================================= */
 
     peerConnection.onicecandidate =
         event => {
@@ -790,10 +970,10 @@ function createPeerConnection() {
                     {
 
                         type:
-                        "candidate",
+                            "candidate",
 
                         candidate:
-                        event.candidate
+                            event.candidate
 
                     }
                 );
@@ -802,18 +982,80 @@ function createPeerConnection() {
 
         };
 
+
+    /* ================================
+       CONNECTION STATE
+    ================================= */
+
+    peerConnection.onconnectionstatechange =
+        () => {
+
+            if(!peerConnection) {
+                return;
+            }
+
+
+            console.log(
+                "Connection state:",
+                peerConnection.connectionState
+            );
+
+
+            if(
+                peerConnection.connectionState ===
+                "connected"
+            ) {
+
+                status.innerText =
+                    "🟢 Connected! आप stranger से बात कर सकते हैं।";
+
+            }
+
+
+            if(
+                peerConnection.connectionState ===
+                "connecting"
+            ) {
+
+                status.innerText =
+                    "🔄 Video connection हो रहा है...";
+
+            }
+
+
+            if(
+                peerConnection.connectionState ===
+                "failed"
+            ) {
+
+                status.innerText =
+                    "❌ Video connection failed.";
+
+            }
+
+        };
+
 }
 
 
-// =================================
-// START
-// =================================
+/* =========================================
+   START CHAT
+========================================= */
 
 startButton.onclick =
 async () => {
 
+    if(started) {
+        return;
+    }
+
+
     startButton.disabled =
         true;
+
+
+    status.innerText =
+        "📷 Camera शुरू हो रहा है...";
 
 
     const ok =
@@ -828,6 +1070,9 @@ async () => {
         return;
 
     }
+
+
+    started = true;
 
 
     nextButton.disabled =
@@ -854,9 +1099,9 @@ async () => {
 };
 
 
-// =================================
-// WAITING
-// =================================
+/* =========================================
+   WAITING
+========================================= */
 
 socket.on(
     "waiting",
@@ -869,20 +1114,26 @@ socket.on(
 );
 
 
-// =================================
-// MATCHED
-// =================================
+/* =========================================
+   MATCHED
+========================================= */
 
 socket.on(
     "matched",
     async id => {
+
+        console.log(
+            "MATCHED WITH:",
+            id
+        );
+
 
         partnerId =
             id;
 
 
         status.innerText =
-            "🎉 Stranger मिल गया!";
+            "🎉 Stranger मिल गया! Video connect हो रही है...";
 
 
         reportButton.disabled =
@@ -895,125 +1146,57 @@ socket.on(
         createPeerConnection();
 
 
-        if(socket.id < partnerId) {
+        /*
+        IMPORTANT:
 
-            const offer =
-                await peerConnection
-                .createOffer();
-
-
-            await peerConnection
-            .setLocalDescription(
-                offer
-            );
-
-
-            socket.emit(
-                "signal",
-                {
-
-                    type:
-                    "offer",
-
-                    offer:
-                    offer
-
-                }
-            );
-
-        }
-
-    }
-);
-
-
-// =================================
-// SIGNAL
-// =================================
-
-socket.on(
-    "signal",
-    async data => {
-
-        if(!peerConnection) {
-
-            createPeerConnection();
-
-        }
-
+        दोनों users में से socket ID
+        छोटा वाला OFFER बनाएगा।
+        */
 
         if(
-            data.signal.type ===
-            "offer"
-        ) {
-
-            await peerConnection
-            .setRemoteDescription(
-                new RTCSessionDescription(
-                    data.signal.offer
-                )
-            );
-
-
-            const answer =
-                await peerConnection
-                .createAnswer();
-
-
-            await peerConnection
-            .setLocalDescription(
-                answer
-            );
-
-
-            socket.emit(
-                "signal",
-                {
-
-                    type:
-                    "answer",
-
-                    answer:
-                    answer
-
-                }
-            );
-
-        }
-
-
-        else if(
-            data.signal.type ===
-            "answer"
-        ) {
-
-            await peerConnection
-            .setRemoteDescription(
-                new RTCSessionDescription(
-                    data.signal.answer
-                )
-            );
-
-        }
-
-
-        else if(
-            data.signal.type ===
-            "candidate"
+            socket.id <
+            partnerId
         ) {
 
             try {
 
+                const offer =
+                    await peerConnection
+                    .createOffer();
+
+
                 await peerConnection
-                .addIceCandidate(
-                    data.signal.candidate
+                    .setLocalDescription(
+                        offer
+                    );
+
+
+                socket.emit(
+                    "signal",
+                    {
+
+                        type:
+                            "offer",
+
+                        offer:
+                            offer
+
+                    }
+                );
+
+
+                console.log(
+                    "OFFER SENT"
                 );
 
             }
 
             catch(error) {
 
-                console.error(error);
+                console.error(
+                    "Offer error:",
+                    error
+                );
 
             }
 
@@ -1023,15 +1206,184 @@ socket.on(
 );
 
 
-// =================================
-// CAMERA ON/OFF
-// =================================
+/* =========================================
+   WEBRTC SIGNAL
+========================================= */
+
+socket.on(
+    "signal",
+    async data => {
+
+        try {
+
+            if(!data || !data.signal) {
+                return;
+            }
+
+
+            const signal =
+                data.signal;
+
+
+            console.log(
+                "SIGNAL RECEIVED:",
+                signal.type
+            );
+
+
+            /* ============================
+               OFFER
+            ============================ */
+
+            if(
+                signal.type ===
+                "offer"
+            ) {
+
+                if(!peerConnection) {
+
+                    createPeerConnection();
+
+                }
+
+
+                await peerConnection
+                    .setRemoteDescription(
+                        new RTCSessionDescription(
+                            signal.offer
+                        )
+                    );
+
+
+                const answer =
+                    await peerConnection
+                    .createAnswer();
+
+
+                await peerConnection
+                    .setLocalDescription(
+                        answer
+                    );
+
+
+                socket.emit(
+                    "signal",
+                    {
+
+                        type:
+                            "answer",
+
+                        answer:
+                            answer
+
+                    }
+                );
+
+
+                console.log(
+                    "ANSWER SENT"
+                );
+
+            }
+
+
+            /* ============================
+               ANSWER
+            ============================ */
+
+            else if(
+                signal.type ===
+                "answer"
+            ) {
+
+                if(!peerConnection) {
+                    return;
+                }
+
+
+                await peerConnection
+                    .setRemoteDescription(
+                        new RTCSessionDescription(
+                            signal.answer
+                        )
+                    );
+
+
+                console.log(
+                    "ANSWER RECEIVED"
+                );
+
+            }
+
+
+            /* ============================
+               ICE CANDIDATE
+            ============================ */
+
+            else if(
+                signal.type ===
+                "candidate"
+            ) {
+
+                if(!peerConnection) {
+
+                    return;
+
+                }
+
+
+                try {
+
+                    await peerConnection
+                        .addIceCandidate(
+                            new RTCIceCandidate(
+                                signal.candidate
+                            )
+                        );
+
+
+                    console.log(
+                        "ICE CANDIDATE ADDED"
+                    );
+
+                }
+
+                catch(error) {
+
+                    console.error(
+                        "ICE error:",
+                        error
+                    );
+
+                }
+
+            }
+
+        }
+
+        catch(error) {
+
+            console.error(
+                "SIGNAL ERROR:",
+                error
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   CAMERA ON / OFF
+========================================= */
 
 cameraButton.onclick =
 () => {
 
-    if(!localStream)
+    if(!localStream) {
         return;
+    }
 
 
     const track =
@@ -1039,8 +1391,9 @@ cameraButton.onclick =
         .getVideoTracks()[0];
 
 
-    if(!track)
+    if(!track) {
         return;
+    }
 
 
     cameraOn =
@@ -1056,15 +1409,16 @@ cameraButton.onclick =
 };
 
 
-// =================================
-// MIC ON/OFF
-// =================================
+/* =========================================
+   MIC ON / OFF
+========================================= */
 
 micButton.onclick =
 () => {
 
-    if(!localStream)
+    if(!localStream) {
         return;
+    }
 
 
     const track =
@@ -1072,8 +1426,9 @@ micButton.onclick =
         .getAudioTracks()[0];
 
 
-    if(!track)
+    if(!track) {
         return;
+    }
 
 
     micOn =
@@ -1089,9 +1444,9 @@ micButton.onclick =
 };
 
 
-// =================================
-// UPDATE CONTROLS
-// =================================
+/* =========================================
+   UPDATE CAMERA/MIC BUTTONS
+========================================= */
 
 function updateControls() {
 
@@ -1109,12 +1464,17 @@ function updateControls() {
 }
 
 
-// =================================
-// NEXT
-// =================================
+/* =========================================
+   NEXT
+========================================= */
 
 nextButton.onclick =
 () => {
+
+    console.log(
+        "NEXT CLICKED"
+    );
+
 
     partnerVideo.srcObject =
         null;
@@ -1132,6 +1492,9 @@ nextButton.onclick =
 
 
     if(peerConnection) {
+
+        peerConnection.onicecandidate =
+            null;
 
         peerConnection.close();
 
@@ -1152,12 +1515,22 @@ nextButton.onclick =
 };
 
 
-// =================================
-// STOP
-// =================================
+/* =========================================
+   STOP
+========================================= */
 
 stopButton.onclick =
 () => {
+
+    console.log(
+        "STOP CLICKED"
+    );
+
+
+    socket.emit(
+        "stop"
+    );
+
 
     if(peerConnection) {
 
@@ -1182,8 +1555,7 @@ stopButton.onclick =
         localStream
         .getTracks()
         .forEach(
-            track =>
-            track.stop()
+            track => track.stop()
         );
 
 
@@ -1207,6 +1579,7 @@ stopButton.onclick =
     cameraButton.disabled =
         true;
 
+
     micButton.disabled =
         true;
 
@@ -1214,10 +1587,16 @@ stopButton.onclick =
     nextButton.disabled =
         true;
 
+
     stopButton.disabled =
         true;
 
+
     startButton.disabled =
+        false;
+
+
+    started =
         false;
 
 
@@ -1227,13 +1606,18 @@ stopButton.onclick =
 };
 
 
-// =================================
-// PARTNER DISCONNECTED
-// =================================
+/* =========================================
+   PARTNER DISCONNECTED
+========================================= */
 
 socket.on(
     "partnerDisconnected",
     () => {
+
+        console.log(
+            "PARTNER DISCONNECTED"
+        );
+
 
         partnerVideo.srcObject =
             null;
@@ -1261,15 +1645,15 @@ socket.on(
 
 
         status.innerText =
-            "👋 Stranger चला गया।";
+            "👋 Stranger चला गया। Next दबाकर नया stranger खोजें।";
 
     }
 );
 
 
-// =================================
-// CHAT ENABLE
-// =================================
+/* =========================================
+   CHAT ENABLE
+========================================= */
 
 function enableChat() {
 
@@ -1279,10 +1663,12 @@ function enableChat() {
     sendButton.disabled =
         false;
 
-    messageInput.focus();
-
 }
 
+
+/* =========================================
+   CHAT DISABLE
+========================================= */
 
 function disableChat() {
 
@@ -1298,9 +1684,9 @@ function disableChat() {
 }
 
 
-// =================================
-// SEND MESSAGE
-// =================================
+/* =========================================
+   SEND MESSAGE
+========================================= */
 
 function sendMessage() {
 
@@ -1308,12 +1694,14 @@ function sendMessage() {
         messageInput.value.trim();
 
 
-    if(!message)
+    if(!message) {
         return;
+    }
 
 
-    if(!partnerId)
+    if(!partnerId) {
         return;
+    }
 
 
     socket.emit(
@@ -1334,15 +1722,26 @@ function sendMessage() {
 }
 
 
+/* =========================================
+   SEND BUTTON
+========================================= */
+
 sendButton.onclick =
 sendMessage;
 
+
+/* =========================================
+   ENTER KEY
+========================================= */
 
 messageInput.addEventListener(
     "keydown",
     event => {
 
-        if(event.key === "Enter") {
+        if(
+            event.key ===
+            "Enter"
+        ) {
 
             sendMessage();
 
@@ -1352,9 +1751,9 @@ messageInput.addEventListener(
 );
 
 
-// =================================
-// RECEIVE MESSAGE
-// =================================
+/* =========================================
+   RECEIVE CHAT MESSAGE
+========================================= */
 
 socket.on(
     "chatMessage",
@@ -1369,9 +1768,9 @@ socket.on(
 );
 
 
-// =================================
-// ADD MESSAGE
-// =================================
+/* =========================================
+   ADD MESSAGE
+========================================= */
 
 function addMessage(
     text,
@@ -1404,15 +1803,16 @@ function addMessage(
 }
 
 
-// =================================
-// REPORT OPEN
-// =================================
+/* =========================================
+   REPORT OPEN
+========================================= */
 
 reportButton.onclick =
 () => {
 
-    if(!partnerId)
+    if(!partnerId) {
         return;
+    }
 
 
     reportOverlay.style.display =
@@ -1421,9 +1821,9 @@ reportButton.onclick =
 };
 
 
-// =================================
-// REPORT CANCEL
-// =================================
+/* =========================================
+   REPORT CANCEL
+========================================= */
 
 cancelReport.onclick =
 () => {
@@ -1434,9 +1834,9 @@ cancelReport.onclick =
 };
 
 
-// =================================
-// SUBMIT REPORT
-// =================================
+/* =========================================
+   REPORT SUBMIT
+========================================= */
 
 submitReport.onclick =
 () => {
@@ -1478,13 +1878,49 @@ submitReport.onclick =
     );
 
 
-    // Report के बाद Next
-
     nextButton.click();
 
 };
 
+
+/* =========================================
+   SOCKET CONNECT
+========================================= */
+
+socket.on(
+    "connect",
+    () => {
+
+        console.log(
+            "Socket connected:",
+            socket.id
+        );
+
+    }
+);
+
+
+/* =========================================
+   SOCKET DISCONNECT
+========================================= */
+
+socket.on(
+    "disconnect",
+    () => {
+
+        console.log(
+            "Socket disconnected"
+        );
+
+        status.innerText =
+            "⚠️ Server से connection टूट गया।";
+
+    }
+);
+
 </script>
 
 </body>
+
 </html>
+```
