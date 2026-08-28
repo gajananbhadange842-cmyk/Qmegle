@@ -1,3 +1,4 @@
+```javascript
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -5,11 +6,15 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+});
 
 
 // =====================================
-// WEBSITE FILES
+// WEBSITE
 // =====================================
 
 app.use(express.static(__dirname));
@@ -23,126 +28,141 @@ let waitingUser = null;
 
 
 // =====================================
+// FIND PARTNER FUNCTION
+// =====================================
+
+function findPartner(socket) {
+
+    // Already connected
+    if (socket.partnerId) {
+        return;
+    }
+
+
+    // Already waiting
+    if (waitingUser === socket.id) {
+
+        socket.emit("waiting");
+
+        return;
+    }
+
+
+    // =================================
+    // CHECK WAITING USER
+    // =================================
+
+    if (waitingUser) {
+
+        const partner =
+            io.sockets.sockets.get(
+                waitingUser
+            );
+
+
+        // Waiting user exists
+        if (
+            partner &&
+            partner.id !== socket.id
+        ) {
+
+            // Remove waiting user
+            waitingUser = null;
+
+
+            // Save partner IDs
+            socket.partnerId =
+                partner.id;
+
+            partner.partnerId =
+                socket.id;
+
+
+            console.log(
+                "MATCHED:",
+                socket.id,
+                "<->",
+                partner.id
+            );
+
+
+            // IMPORTANT:
+            // Send partner ID directly
+            // because your index.html expects:
+            // socket.on("matched", id => {})
+
+
+            partner.emit(
+                "matched",
+                socket.id
+            );
+
+
+            socket.emit(
+                "matched",
+                partner.id
+            );
+
+
+            return;
+        }
+
+
+        // Waiting user disappeared
+        waitingUser = null;
+
+    }
+
+
+    // =================================
+    // WAITING
+    // =================================
+
+    waitingUser =
+        socket.id;
+
+
+    socket.emit("waiting");
+
+
+    console.log(
+        "WAITING:",
+        socket.id
+    );
+
+}
+
+
+// =====================================
 // SOCKET CONNECTION
 // =====================================
 
 io.on("connection", (socket) => {
 
-    console.log("=================================");
-    console.log("User connected:", socket.id);
-    console.log("=================================");
+    console.log(
+        "USER CONNECTED:",
+        socket.id
+    );
 
 
     // =================================
     // FIND PARTNER
     // =================================
 
-    socket.on("findPartner", () => {
-
-        console.log(
-            "Find partner:",
-            socket.id
-        );
-
-
-        // अगर पहले से partner है
-        if (socket.partner) {
+    socket.on(
+        "findPartner",
+        () => {
 
             console.log(
-                "User already has partner:",
+                "FIND PARTNER:",
                 socket.id
             );
 
-            return;
-        }
 
-
-        // अगर कोई waiting user है
-        if (
-            waitingUser &&
-            waitingUser !== socket.id
-        ) {
-
-            const partnerId =
-                waitingUser;
-
-
-            waitingUser = null;
-
-
-            const partnerSocket =
-                io.sockets.sockets.get(
-                    partnerId
-                );
-
-
-            // Partner मौजूद है
-            if (partnerSocket) {
-
-                socket.partner =
-                    partnerId;
-
-                partnerSocket.partner =
-                    socket.id;
-
-
-                // दोनों users को match बताना
-
-                socket.emit(
-                    "matched",
-                    partnerId
-                );
-
-
-                partnerSocket.emit(
-                    "matched",
-                    socket.id
-                );
-
-
-                console.log(
-                    "🎉 Users matched:",
-                    socket.id,
-                    partnerId
-                );
-
-            }
-
-            // Partner नहीं मिला
-            else {
-
-                waitingUser =
-                    socket.id;
-
-
-                socket.emit(
-                    "waiting"
-                );
-
-            }
+            findPartner(socket);
 
         }
-
-        // कोई waiting user नहीं
-        else {
-
-            waitingUser =
-                socket.id;
-
-
-            socket.emit(
-                "waiting"
-            );
-
-
-            console.log(
-                "⏳ User waiting:",
-                socket.id
-            );
-
-        }
-
-    });
+    );
 
 
     // =================================
@@ -153,28 +173,213 @@ io.on("connection", (socket) => {
         "signal",
         (data) => {
 
-            if (!socket.partner) {
+            /*
+             Your index.html sends:
+
+             socket.emit("signal", {
+                 type: "offer",
+                 offer: offer
+             });
+
+             Therefore server must read:
+             data.type
+             data.offer
+             */
+
+
+            if (!socket.partnerId) {
+
+                console.log(
+                    "No partner for signal:",
+                    socket.id
+                );
 
                 return;
             }
 
 
-            const partnerSocket =
+            const partner =
                 io.sockets.sockets.get(
-                    socket.partner
+                    socket.partnerId
                 );
 
 
-            if (partnerSocket) {
+            if (!partner) {
 
-                partnerSocket.emit(
-                    "signal",
-                    {
-                        from: socket.id,
+                console.log(
+                    "Partner not found:",
+                    socket.partnerId
+                );
 
-                        signal: data
+                return;
+            }
+
+
+            // Forward signal exactly as received
+
+            partner.emit(
+                "signal",
+                {
+                    from: socket.id,
+                    signal: data
+                }
+            );
+
+
+            console.log(
+                "SIGNAL:",
+                data.type,
+                socket.id,
+                "->",
+                socket.partnerId
+            );
+
+        }
+    );
+
+
+    // =================================
+    // NEXT
+    // =================================
+
+    socket.on(
+        "next",
+        () => {
+
+            console.log(
+                "NEXT:",
+                socket.id
+            );
+
+
+            // Remove from waiting
+            if (
+                waitingUser ===
+                socket.id
+            ) {
+
+                waitingUser = null;
+
+            }
+
+
+            // Save old partner
+            const oldPartnerId =
+                socket.partnerId;
+
+
+            // Remove own partner
+            socket.partnerId =
+                null;
+
+
+            // =================================
+            // TELL OLD PARTNER
+            // =================================
+
+            if (oldPartnerId) {
+
+                const oldPartner =
+                    io.sockets.sockets.get(
+                        oldPartnerId
+                    );
+
+
+                if (oldPartner) {
+
+                    oldPartner.partnerId =
+                        null;
+
+
+                    oldPartner.emit(
+                        "partnerDisconnected"
+                    );
+
+                }
+
+            }
+
+
+            // =================================
+            // FIND NEW PARTNER
+            // =================================
+
+            setTimeout(
+                () => {
+
+                    if (
+                        io.sockets.sockets.has(
+                            socket.id
+                        )
+                    ) {
+
+                        findPartner(socket);
+
                     }
-                );
+
+                },
+                200
+            );
+
+        }
+    );
+
+
+    // =================================
+    // STOP
+    // =================================
+
+    socket.on(
+        "stop",
+        () => {
+
+            console.log(
+                "STOP:",
+                socket.id
+            );
+
+
+            // Remove waiting
+            if (
+                waitingUser ===
+                socket.id
+            ) {
+
+                waitingUser = null;
+
+            }
+
+
+            // Old partner
+            const oldPartnerId =
+                socket.partnerId;
+
+
+            // Clear own partner
+            socket.partnerId =
+                null;
+
+
+            // Tell partner
+            if (oldPartnerId) {
+
+                const partner =
+                    io.sockets.sockets.get(
+                        oldPartnerId
+                    );
+
+
+                if (partner) {
+
+                    partner.partnerId =
+                        null;
+
+
+                    partner.emit(
+                        "partnerDisconnected"
+                    );
+
+                }
 
             }
 
@@ -190,34 +395,24 @@ io.on("connection", (socket) => {
         "chatMessage",
         (message) => {
 
-            if (!socket.partner) {
-
+            if (!socket.partnerId) {
                 return;
             }
 
 
-            const partnerSocket =
+            const partner =
                 io.sockets.sockets.get(
-                    socket.partner
+                    socket.partnerId
                 );
 
 
-            if (partnerSocket) {
+            if (partner) {
 
-                partnerSocket.emit(
+                partner.emit(
                     "chatMessage",
                     message
                 );
 
-
-                console.log(
-                    "💬 Message:",
-                    socket.id,
-                    "->",
-                    socket.partner,
-                    message
-                );
-
             }
 
         }
@@ -225,132 +420,27 @@ io.on("connection", (socket) => {
 
 
     // =================================
-    // NEXT USER
-    // =================================
-
-    socket.on(
-        "next",
-        () => {
-
-            console.log(
-                "⏭️ Next:",
-                socket.id
-            );
-
-
-            // अगर waiting में था
-            if (
-                waitingUser ===
-                socket.id
-            ) {
-
-                waitingUser = null;
-
-            }
-
-
-            // पुराना partner
-            if (socket.partner) {
-
-                const oldPartnerId =
-                    socket.partner;
-
-
-                const partnerSocket =
-                    io.sockets.sockets.get(
-                        oldPartnerId
-                    );
-
-
-                // अपना partner हटाएँ
-                socket.partner =
-                    null;
-
-
-                // दूसरे user को बताएं
-                if (partnerSocket) {
-
-                    partnerSocket.partner =
-                        null;
-
-
-                    partnerSocket.emit(
-                        "partnerDisconnected"
-                    );
-
-                }
-
-            }
-
-
-            socket.partner =
-                null;
-
-
-            // नया partner खोजें
-            findNewPartner(socket);
-
-        }
-    );
-
-
-    // =================================
-    // REPORT USER
+    // REPORT
     // =================================
 
     socket.on(
         "reportUser",
         (reportData) => {
 
-            console.log("");
             console.log(
-                "🚨 ==============================="
-            );
-
-            console.log(
-                "🚨 NEW REPORT"
-            );
-
-            console.log(
-                "Reporter:",
+                "REPORT:",
                 socket.id
             );
 
             console.log(
-                "Reported User:",
-                socket.partner
+                "Partner:",
+                socket.partnerId
             );
-
-
-            // अगर report object है
-            if (
-                typeof reportData ===
-                "object"
-            ) {
-
-                console.log(
-                    "Reason:",
-                    reportData.reason
-                );
-
-            }
-
-            // अगर सिर्फ reason भेजा गया
-            else {
-
-                console.log(
-                    "Reason:",
-                    reportData
-                );
-
-            }
-
 
             console.log(
-                "🚨 ==============================="
+                "Reason:",
+                reportData
             );
-
-            console.log("");
 
         }
     );
@@ -365,41 +455,43 @@ io.on("connection", (socket) => {
         () => {
 
             console.log(
-                "❌ User disconnected:",
+                "USER DISCONNECTED:",
                 socket.id
             );
 
 
-            // Waiting user हटाएँ
-
+            // Remove waiting
             if (
                 waitingUser ===
                 socket.id
             ) {
 
-                waitingUser =
-                    null;
+                waitingUser = null;
 
             }
 
 
-            // Partner को बताएं
+            // Get partner
+            const partnerId =
+                socket.partnerId;
 
-            if (socket.partner) {
 
-                const partnerSocket =
+            // Tell partner
+            if (partnerId) {
+
+                const partner =
                     io.sockets.sockets.get(
-                        socket.partner
+                        partnerId
                     );
 
 
-                if (partnerSocket) {
+                if (partner) {
 
-                    partnerSocket.partner =
+                    partner.partnerId =
                         null;
 
 
-                    partnerSocket.emit(
+                    partner.emit(
                         "partnerDisconnected"
                     );
 
@@ -414,132 +506,35 @@ io.on("connection", (socket) => {
 
 
 // =====================================
-// FIND NEW PARTNER FUNCTION
+// SERVER START
 // =====================================
 
-function findNewPartner(socket) {
+const PORT =
+    process.env.PORT || 3000;
 
-    console.log(
-        "🔎 Finding new partner:",
-        socket.id
-    );
-
-
-    // अगर दूसरा waiting user है
-
-    if (
-        waitingUser &&
-        waitingUser !== socket.id
-    ) {
-
-        const partnerId =
-            waitingUser;
-
-
-        waitingUser =
-            null;
-
-
-        const partnerSocket =
-            io.sockets.sockets.get(
-                partnerId
-            );
-
-
-        if (partnerSocket) {
-
-            // दोनों को connect करें
-
-            socket.partner =
-                partnerId;
-
-
-            partnerSocket.partner =
-                socket.id;
-
-
-            socket.emit(
-                "matched",
-                partnerId
-            );
-
-
-            partnerSocket.emit(
-                "matched",
-                socket.id
-            );
-
-
-            console.log(
-                "🎉 New users matched:",
-                socket.id,
-                partnerId
-            );
-
-        }
-
-        else {
-
-            waitingUser =
-                socket.id;
-
-
-            socket.emit(
-                "waiting"
-            );
-
-        }
-
-    }
-
-    // कोई दूसरा user नहीं
-    else {
-
-        waitingUser =
-            socket.id;
-
-
-        socket.emit(
-            "waiting"
-        );
-
-
-        console.log(
-            "⏳ Waiting for new partner:",
-            socket.id
-        );
-
-    }
-
-}
-
-
-// =====================================
-// START SERVER
-// =====================================
 
 server.listen(
-    3000,
+    PORT,
+    "0.0.0.0",
     () => {
 
-        console.log("");
         console.log(
-            "================================="
+            "===================================="
         );
 
         console.log(
-            "🚀 Qmegle Server Started"
+            "       QMEGLE SERVER STARTED"
         );
 
         console.log(
-            "🌐 http://localhost:3000"
+            "       PORT:",
+            PORT
         );
 
         console.log(
-            "================================="
+            "===================================="
         );
-
-        console.log("");
 
     }
 );
+```
