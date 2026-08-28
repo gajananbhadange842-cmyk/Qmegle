@@ -34,6 +34,23 @@ app.get("/googlea552bb0021f0b836.html", (req, res) => {
 let waitingUser = null;
 
 // =====================================
+// REPORT SETTINGS
+// =====================================
+
+const allowedReportReasons = [
+    "Sexual / Adult Content",
+    "Harassment",
+    "Abuse",
+    "Spam",
+    "Other"
+];
+
+// Prevent repeated reports from same user
+const reportCooldown = new Map();
+
+const REPORT_COOLDOWN_MS = 30 * 1000;
+
+// =====================================
 // SOCKET CONNECTION
 // =====================================
 
@@ -51,12 +68,10 @@ io.on("connection", (socket) => {
 
         console.log("Find partner:", socket.id);
 
-        // Already connected
         if (socket.partner) {
             return;
         }
 
-        // Remove stale waiting user
         if (
             waitingUser &&
             !io.sockets.sockets.has(waitingUser)
@@ -64,7 +79,6 @@ io.on("connection", (socket) => {
             waitingUser = null;
         }
 
-        // Find waiting partner
         if (
             waitingUser &&
             waitingUser !== socket.id
@@ -82,7 +96,6 @@ io.on("connection", (socket) => {
                 socket.partner = partnerId;
                 partnerSocket.partner = socket.id;
 
-                // First user becomes initiator
                 socket.emit("matched", {
                     partner: partnerId,
                     initiator: true
@@ -164,6 +177,10 @@ io.on("connection", (socket) => {
             return;
         }
 
+        // Limit message length
+        const cleanMessage =
+            message.trim().slice(0, 1000);
+
         const partnerSocket =
             io.sockets.sockets.get(socket.partner);
 
@@ -171,7 +188,7 @@ io.on("connection", (socket) => {
 
             partnerSocket.emit(
                 "chatMessage",
-                message.trim()
+                cleanMessage
             );
         }
     });
@@ -187,19 +204,15 @@ io.on("connection", (socket) => {
             socket.id
         );
 
-        // Remove from waiting
         if (waitingUser === socket.id) {
             waitingUser = null;
         }
 
-        // Save old partner
         const oldPartnerId =
             socket.partner;
 
-        // Remove own partner
         socket.partner = null;
 
-        // Disconnect old partner
         if (oldPartnerId) {
 
             const partnerSocket =
@@ -217,7 +230,6 @@ io.on("connection", (socket) => {
             }
         }
 
-        // Find a new partner
         findNewPartner(socket);
     });
 
@@ -232,7 +244,6 @@ io.on("connection", (socket) => {
             socket.id
         );
 
-        // Remove from waiting
         if (waitingUser === socket.id) {
             waitingUser = null;
         }
@@ -242,7 +253,6 @@ io.on("connection", (socket) => {
 
         socket.partner = null;
 
-        // Tell partner
         if (oldPartnerId) {
 
             const partnerSocket =
@@ -267,20 +277,134 @@ io.on("connection", (socket) => {
 
     socket.on("reportUser", (reportData) => {
 
+        const reportedUser =
+            socket.partner;
+
+        // Must have an active partner
+        if (!reportedUser) {
+
+            console.log(
+                "REPORT BLOCKED: No partner",
+                socket.id
+            );
+
+            return;
+        }
+
+        // Validate report data
+        if (
+            !reportData ||
+            typeof reportData.reason !== "string"
+        ) {
+
+            console.log(
+                "REPORT BLOCKED: Invalid data",
+                socket.id
+            );
+
+            return;
+        }
+
+        const reason =
+            reportData.reason.trim();
+
+        // Only allow known reasons
+        if (
+            !allowedReportReasons.includes(reason)
+        ) {
+
+            console.log(
+                "REPORT BLOCKED: Invalid reason",
+                reason
+            );
+
+            return;
+        }
+
+        // Report cooldown
+        const lastReport =
+            reportCooldown.get(socket.id);
+
+        if (
+            lastReport &&
+            Date.now() - lastReport <
+            REPORT_COOLDOWN_MS
+        ) {
+
+            console.log(
+                "REPORT BLOCKED: Cooldown",
+                socket.id
+            );
+
+            return;
+        }
+
+        reportCooldown.set(
+            socket.id,
+            Date.now()
+        );
+
+        // =================================
+        // SAVE REPORT IN SERVER MEMORY
+        // =================================
+
+        const report = {
+
+            reporterId:
+                socket.id,
+
+            reportedUserId:
+                reportedUser,
+
+            reason:
+                reason,
+
+            timestamp:
+                new Date().toISOString()
+        };
+
         console.log("");
         console.log("=================================");
-        console.log("REPORT");
-        console.log("Reporter:", socket.id);
+        console.log("🚨 QMEGLE REPORT");
+        console.log("Reporter:", report.reporterId);
         console.log(
-            "Reported user:",
-            socket.partner || "none"
+            "Reported User:",
+            report.reportedUserId
         );
         console.log(
-            "Report:",
-            reportData
+            "Reason:",
+            report.reason
+        );
+        console.log(
+            "Time:",
+            report.timestamp
         );
         console.log("=================================");
         console.log("");
+
+        // =================================
+        // DISCONNECT BOTH USERS
+        // =================================
+
+        const partnerSocket =
+            io.sockets.sockets.get(
+                reportedUser
+            );
+
+        socket.partner = null;
+
+        if (partnerSocket) {
+
+            partnerSocket.partner = null;
+
+            partnerSocket.emit(
+                "partnerDisconnected"
+            );
+        }
+
+        socket.emit(
+            "reportAccepted"
+        );
     });
 
     // =================================
@@ -294,12 +418,13 @@ io.on("connection", (socket) => {
             socket.id
         );
 
-        // Remove from waiting
         if (waitingUser === socket.id) {
             waitingUser = null;
         }
 
-        // Notify partner
+        // Remove cooldown memory
+        reportCooldown.delete(socket.id);
+
         const partnerId =
             socket.partner;
 
@@ -333,7 +458,6 @@ function findNewPartner(socket) {
         socket.id
     );
 
-    // Remove stale waiting user
     if (
         waitingUser &&
         !io.sockets.sockets.has(waitingUser)
@@ -341,7 +465,6 @@ function findNewPartner(socket) {
         waitingUser = null;
     }
 
-    // Someone is waiting
     if (
         waitingUser &&
         waitingUser !== socket.id
@@ -420,19 +543,28 @@ server.listen(
         console.log(
             "================================="
         );
+
         console.log(
             "🚀 Qmegle Server Started"
         );
+
         console.log(
             "🌐 Port:",
             PORT
         );
+
         console.log(
             "🔎 Google verification enabled"
         );
+
+        console.log(
+            "🛡️ Report protection enabled"
+        );
+
         console.log(
             "================================="
         );
+
         console.log("");
     }
 );
