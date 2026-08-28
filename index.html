@@ -8,34 +8,160 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Qmegle - Random Video Chat</title>
+<title>Qmegle - Free Random Video Chat & Talk to New People</title>
 
 <meta name="description"
-content="Qmegle is a free random video chat platform to meet new people online.">
+content="Qmegle is a free random video chat platform where you can meet new people online, talk with strangers, and enjoy random video and text chat.">
 
 <meta name="keywords"
-content="Qmegle, random video chat, random chat, video chat with strangers">
+content="Qmegle, random video chat, free random video chat, random chat, video chat, chat with strangers, meet new people, online video chat, free video chat, stranger chat">
 
-<meta name="robots" content="index, follow">
+<meta name="author" content="Qmegle">
+
+<meta name="robots"
+content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+<meta name="googlebot"
+content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+<meta name="theme-color" content="#1677ff">
 
 <link rel="canonical"
 href="https://qmegle.onrender.com/">
 
-<!-- FAVICON -->
+<!-- =====================================
+     FAVICON
+===================================== -->
 
 <link rel="icon"
 type="image/svg+xml"
 href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='white'/%3E%3Ctext x='50' y='72' text-anchor='middle' font-size='70' font-family='Arial' font-weight='bold' fill='%231677ff'%3EQ%3C/text%3E%3C/svg%3E">
 
+<!-- =====================================
+     OPEN GRAPH
+===================================== -->
+
+<meta property="og:type" content="website">
+
+<meta property="og:title"
+content="Qmegle - Free Random Video Chat">
+
+<meta property="og:description"
+content="Meet new people online with Qmegle. Start a free random video chat or text chat.">
+
+<meta property="og:url"
+content="https://qmegle.onrender.com/">
+
+<meta property="og:site_name"
+content="Qmegle">
+
+<meta property="og:locale"
+content="en_US">
+
+<!-- =====================================
+     TWITTER / SOCIAL SEO
+===================================== -->
+
+<meta name="twitter:card"
+content="summary">
+
+<meta name="twitter:title"
+content="Qmegle - Free Random Video Chat">
+
+<meta name="twitter:description"
+content="Free random video and text chat. Meet new people online with Qmegle.">
+
+<!-- =====================================
+     STRUCTURED DATA
+===================================== -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Qmegle",
+  "url": "https://qmegle.onrender.com/",
+  "description": "Qmegle is a free random video chat platform for meeting new people online through video and text chat.",
+  "applicationCategory": "SocialNetworkingApplication",
+  "operatingSystem": "Web",
+  "browserRequirements": "Requires JavaScript and a modern web browser",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Qmegle",
+  "url": "https://qmegle.onrender.com/",
+  "description": "Free random video chat and text chat platform."
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Qmegle",
+  "url": "https://qmegle.onrender.com/"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Qmegle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Qmegle is a free online random video and text chat platform that lets users meet new people."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Qmegle free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Qmegle is designed as a free random video and text chat platform."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does Qmegle random video chat work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Start Chat uses your camera and microphone permissions and connects you with another available user through a random matching system."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I stop or find another person?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. You can use Stop to end the current chat or Next to look for another available user."
+      }
+    }
+  ]
+}
+</script>
 
 <style>
 
-/* ================================
-   BASIC
-================================ */
-
 * {
     box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 body {
@@ -43,12 +169,8 @@ body {
     font-family: Arial, sans-serif;
     background: #f4f7ff;
     color: #222;
+    line-height: 1.5;
 }
-
-
-/* ================================
-   HEADER
-================================ */
 
 .header {
     background: white;
@@ -70,10 +192,11 @@ body {
     color: orange;
 }
 
-
-/* ================================
-   CONTAINER
-================================ */
+.logo-subtitle {
+    margin: 4px 0 0;
+    color: #777;
+    font-size: 14px;
+}
 
 .container {
     max-width: 1100px;
@@ -84,17 +207,17 @@ body {
 
 h1 {
     margin-bottom: 8px;
+    font-size: 32px;
+}
+
+h2 {
+    color: #222;
 }
 
 .subtitle {
     color: #666;
     margin-bottom: 25px;
 }
-
-
-/* ================================
-   VIDEO
-================================ */
 
 .videos {
     display: flex;
@@ -133,22 +256,12 @@ video {
     font-weight: bold;
 }
 
-
-/* ================================
-   STATUS
-================================ */
-
 .status {
     margin: 20px 0;
     font-size: 18px;
     font-weight: bold;
     min-height: 25px;
 }
-
-
-/* ================================
-   BUTTONS
-================================ */
 
 button {
     padding: 13px 20px;
@@ -198,11 +311,6 @@ button:disabled {
     background: #d32f2f;
     color: white;
 }
-
-
-/* ================================
-   CHAT
-================================ */
 
 .chat-container {
     max-width: 900px;
@@ -273,11 +381,6 @@ button:disabled {
     color: white;
 }
 
-
-/* ================================
-   REPORT
-================================ */
-
 .report-overlay {
     display: none;
     position: fixed;
@@ -327,11 +430,6 @@ button:disabled {
     width: 100%;
 }
 
-
-/* ================================
-   INFO
-================================ */
-
 .info {
     background: white;
     max-width: 900px;
@@ -339,14 +437,48 @@ button:disabled {
     padding: 22px;
     border-radius: 12px;
     color: #555;
-    line-height: 1.6;
+    line-height: 1.7;
     text-align: left;
 }
 
+.info h2 {
+    margin-top: 0;
+    color: #1677ff;
+}
 
-/* ================================
-   FOOTER
-================================ */
+.faq {
+    max-width: 900px;
+    margin: 25px auto;
+    padding: 22px;
+    background: white;
+    border-radius: 12px;
+    text-align: left;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.faq h2 {
+    color: #1677ff;
+}
+
+.faq-item {
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+}
+
+.faq-item:last-child {
+    border-bottom: none;
+}
+
+.faq-item h3 {
+    margin: 0 0 7px;
+    font-size: 18px;
+    color: #222;
+}
+
+.faq-item p {
+    margin: 0;
+    color: #666;
+}
 
 .footer {
     margin-top: 40px;
@@ -356,15 +488,24 @@ button:disabled {
     text-align: center;
 }
 
+.footer a {
+    color: white;
+    text-decoration: none;
+    margin: 0 8px;
+}
 
-/* ================================
-   MOBILE
-================================ */
+.footer a:hover {
+    text-decoration: underline;
+}
 
 @media (max-width: 600px) {
 
     .logo {
         font-size: 30px;
+    }
+
+    h1 {
+        font-size: 27px;
     }
 
     .video-box {
@@ -390,104 +531,85 @@ button:disabled {
 
 </head>
 
-
 <body>
-
-
-<!-- ================================
-     HEADER
-================================ -->
 
 <header class="header">
 
-    <div class="logo">
+    <div class="logo" aria-label="Qmegle">
 
         <span class="q">Q</span><span class="megle">megle</span>
 
     </div>
 
+    <p class="logo-subtitle">
+        Free Random Video Chat
+    </p>
+
 </header>
 
 
-<!-- ================================
-     MAIN
-================================ -->
-
 <main class="container">
 
-    <h1>Random Video Chat</h1>
+    <h1>Free Random Video Chat</h1>
 
     <p class="subtitle">
-        Meet new people and start a random video chat for free.
+        Meet new people online with Qmegle.
+        Start a free random video or text chat.
     </p>
 
 
-    <!-- ============================
-         VIDEOS
-    ============================= -->
+    <section aria-label="Random video chat">
 
-    <div class="videos">
+        <div class="videos">
 
+            <div class="video-box">
 
-        <!-- LOCAL VIDEO -->
+                <div class="video-title">
+                    👤 आप
+                </div>
 
-        <div class="video-box">
+                <video
+                    id="myVideo"
+                    autoplay
+                    muted
+                    playsinline
+                    aria-label="Your video">
+                </video>
 
-            <div class="video-title">
-                👤 आप
             </div>
 
-            <video
-                id="myVideo"
-                autoplay
-                muted
-                playsinline>
-            </video>
+
+            <div class="video-box">
+
+                <div class="video-title">
+                    👤 Stranger
+                </div>
+
+                <video
+                    id="partnerVideo"
+                    autoplay
+                    playsinline
+                    aria-label="Stranger video">
+                </video>
+
+            </div>
 
         </div>
 
-
-        <!-- REMOTE VIDEO -->
-
-        <div class="video-box">
-
-            <div class="video-title">
-                👤 Stranger
-            </div>
-
-            <video
-                id="partnerVideo"
-                autoplay
-                playsinline>
-            </video>
-
-        </div>
-
-    </div>
+    </section>
 
 
-    <!-- ============================
-         STATUS
-    ============================= -->
-
-    <div
-        class="status"
-        id="status">
-
+    <div class="status" id="status">
         Start Chat दबाएँ
-
     </div>
 
-
-    <!-- ============================
-         MAIN BUTTONS
-    ============================= -->
 
     <div>
 
         <button
             class="start"
-            id="startButton">
+            id="startButton"
+            aria-label="Start random video chat">
 
             🎥 Start Chat
 
@@ -497,7 +619,8 @@ button:disabled {
         <button
             class="next"
             id="nextButton"
-            disabled>
+            disabled
+            aria-label="Find another stranger">
 
             ⏭️ Next
 
@@ -507,7 +630,8 @@ button:disabled {
         <button
             class="stop"
             id="stopButton"
-            disabled>
+            disabled
+            aria-label="Stop video chat">
 
             🛑 Stop
 
@@ -517,7 +641,8 @@ button:disabled {
         <button
             class="report"
             id="reportButton"
-            disabled>
+            disabled
+            aria-label="Report user">
 
             🚨 Report
 
@@ -525,10 +650,6 @@ button:disabled {
 
     </div>
 
-
-    <!-- ============================
-         CAMERA / MIC
-    ============================= -->
 
     <div>
 
@@ -554,16 +675,12 @@ button:disabled {
     </div>
 
 
-    <!-- ============================
-         CHAT
-    ============================= -->
-
-    <div class="chat-container">
+    <section class="chat-container"
+             aria-label="Qmegle text chat">
 
         <div class="chat-header">
-            💬 Qmegle Chat
+            💬 Qmegle Text Chat
         </div>
-
 
         <div
             class="messages"
@@ -577,15 +694,14 @@ button:disabled {
 
         </div>
 
-
         <div class="chat-input-area">
 
             <input
                 type="text"
                 id="messageInput"
                 placeholder="Message लिखें..."
+                aria-label="Type your message"
                 disabled>
-
 
             <button
                 id="sendButton"
@@ -597,40 +713,97 @@ button:disabled {
 
         </div>
 
-    </div>
+    </section>
 
 
-    <!-- ============================
-         INFO
-    ============================= -->
+    <section class="info">
 
-    <div class="info">
-
-        <strong>Qmegle क्या है?</strong>
+        <h2>Qmegle क्या है?</h2>
 
         <p>
-            Qmegle एक random video chat platform है।
-            आप Start Chat दबाकर किसी random stranger से
-            video और text chat कर सकते हैं।
+            <strong>Qmegle</strong> एक free random video chat
+            और text chat platform है जहाँ आप online नए लोगों
+            से मिल सकते हैं और random video conversation शुरू कर सकते हैं।
         </p>
+
+        <h2>Qmegle पर Random Video Chat कैसे करें?</h2>
 
         <p>
-            ⚠️ किसी भी गलत व्यवहार की Report करें।
+            Start Chat बटन दबाएँ, camera और microphone की permission दें
+            और Qmegle आपको available random user से connect करने की कोशिश करेगा।
         </p>
 
-    </div>
+        <h2>Safety और Responsible Chat</h2>
+
+        <p>
+            Online chat करते समय अपनी personal information,
+            password, OTP, bank details या अन्य sensitive information
+            किसी अनजान व्यक्ति के साथ share न करें।
+            गलत व्यवहार होने पर Report button का इस्तेमाल करें।
+        </p>
+
+    </section>
+
+
+    <section class="faq">
+
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+
+            <h3>Qmegle क्या है?</h3>
+
+            <p>
+                Qmegle एक free random video और text chat platform है
+                जहाँ users नए लोगों से online मिल सकते हैं।
+            </p>
+
+        </div>
+
+
+        <div class="faq-item">
+
+            <h3>क्या Qmegle free है?</h3>
+
+            <p>
+                हाँ, Qmegle को free random video और text chat
+                platform के रूप में बनाया गया है।
+            </p>
+
+        </div>
+
+
+        <div class="faq-item">
+
+            <h3>Qmegle पर random video chat कैसे काम करता है?</h3>
+
+            <p>
+                Start Chat दबाने के बाद Qmegle available user को
+                random matching system के जरिए connect करने की कोशिश करता है।
+            </p>
+
+        </div>
+
+
+        <div class="faq-item">
+
+            <h3>क्या मैं दूसरे व्यक्ति को बदल सकता हूँ?</h3>
+
+            <p>
+                हाँ। Next button दबाकर आप दूसरे available user को
+                खोज सकते हैं।
+            </p>
+
+        </div>
+
+    </section>
 
 </main>
 
 
-<!-- ================================
-     REPORT POPUP
-================================ -->
-
 <div
     class="report-overlay"
     id="reportOverlay">
-
 
     <div class="report-box">
 
@@ -639,7 +812,6 @@ button:disabled {
         <p>
             Report करने का कारण चुनें:
         </p>
-
 
         <label class="report-option">
 
@@ -652,7 +824,6 @@ button:disabled {
 
         </label>
 
-
         <label class="report-option">
 
             <input
@@ -663,7 +834,6 @@ button:disabled {
             😡 Harassment
 
         </label>
-
 
         <label class="report-option">
 
@@ -676,7 +846,6 @@ button:disabled {
 
         </label>
 
-
         <label class="report-option">
 
             <input
@@ -687,7 +856,6 @@ button:disabled {
             🚫 Spam
 
         </label>
-
 
         <label class="report-option">
 
@@ -700,7 +868,6 @@ button:disabled {
 
         </label>
 
-
         <button
             class="submit-report"
             id="submitReport">
@@ -708,7 +875,6 @@ button:disabled {
             🚨 Submit Report
 
         </button>
-
 
         <button
             class="cancel-report"
@@ -723,36 +889,27 @@ button:disabled {
 </div>
 
 
-<!-- ================================
-     FOOTER
-================================ -->
-
 <footer class="footer">
 
-    © 2026 Qmegle. All Rights Reserved.
+    <div>
+        © 2026 Qmegle. All Rights Reserved.
+    </div>
+
+    <div style="margin-top:10px;">
+        <a href="/about.html">About</a>
+        <a href="/contact.html">Contact</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+    </div>
 
 </footer>
 
 
-<!-- ================================
-     SOCKET.IO
-================================ -->
-
 <script src="/socket.io/socket.io.js"></script>
-
 
 <script>
 
-/* =========================================
-   SOCKET
-========================================= */
-
 const socket = io();
-
-
-/* =========================================
-   ELEMENTS
-========================================= */
 
 const myVideo =
     document.getElementById("myVideo");
@@ -799,27 +956,12 @@ const submitReport =
 const cancelReport =
     document.getElementById("cancelReport");
 
-
-/* =========================================
-   VARIABLES
-========================================= */
-
 let localStream = null;
-
 let peerConnection = null;
-
 let partnerId = null;
-
 let cameraOn = true;
-
 let micOn = true;
-
 let started = false;
-
-
-/* =========================================
-   WEBRTC CONFIG
-========================================= */
 
 const configuration = {
 
@@ -838,10 +980,6 @@ const configuration = {
 };
 
 
-/* =========================================
-   START CAMERA
-========================================= */
-
 async function startCamera() {
 
     try {
@@ -850,23 +988,17 @@ async function startCamera() {
             await navigator.mediaDevices.getUserMedia({
 
                 video: true,
-
                 audio: true
 
             });
 
-
         myVideo.srcObject =
             localStream;
 
-
         cameraOn = true;
-
         micOn = true;
 
-
         updateControls();
-
 
         return true;
 
@@ -879,10 +1011,8 @@ async function startCamera() {
             error
         );
 
-
         status.innerText =
             "❌ Camera और Microphone की permission दें।";
-
 
         return false;
 
@@ -890,10 +1020,6 @@ async function startCamera() {
 
 }
 
-
-/* =========================================
-   CREATE PEER CONNECTION
-========================================= */
 
 function createPeerConnection() {
 
@@ -903,16 +1029,10 @@ function createPeerConnection() {
 
     }
 
-
     peerConnection =
         new RTCPeerConnection(
             configuration
         );
-
-
-    /* ================================
-       ADD LOCAL TRACKS
-    ================================= */
 
     if(localStream) {
 
@@ -929,18 +1049,8 @@ function createPeerConnection() {
 
     }
 
-
-    /* ================================
-       RECEIVE REMOTE VIDEO
-    ================================= */
-
     peerConnection.ontrack =
         event => {
-
-            console.log(
-                "REMOTE TRACK RECEIVED"
-            );
-
 
             if(event.streams &&
                event.streams[0]) {
@@ -951,11 +1061,6 @@ function createPeerConnection() {
             }
 
         };
-
-
-    /* ================================
-       ICE CANDIDATE
-    ================================= */
 
     peerConnection.onicecandidate =
         event => {
@@ -968,13 +1073,8 @@ function createPeerConnection() {
                 socket.emit(
                     "signal",
                     {
-
-                        type:
-                            "candidate",
-
-                        candidate:
-                            event.candidate
-
+                        type: "candidate",
+                        candidate: event.candidate
                     }
                 );
 
@@ -982,24 +1082,12 @@ function createPeerConnection() {
 
         };
 
-
-    /* ================================
-       CONNECTION STATE
-    ================================= */
-
     peerConnection.onconnectionstatechange =
         () => {
 
             if(!peerConnection) {
                 return;
             }
-
-
-            console.log(
-                "Connection state:",
-                peerConnection.connectionState
-            );
-
 
             if(
                 peerConnection.connectionState ===
@@ -1011,7 +1099,6 @@ function createPeerConnection() {
 
             }
 
-
             if(
                 peerConnection.connectionState ===
                 "connecting"
@@ -1021,7 +1108,6 @@ function createPeerConnection() {
                     "🔄 Video connection हो रहा है...";
 
             }
-
 
             if(
                 peerConnection.connectionState ===
@@ -1038,10 +1124,6 @@ function createPeerConnection() {
 }
 
 
-/* =========================================
-   START CHAT
-========================================= */
-
 startButton.onclick =
 async () => {
 
@@ -1049,18 +1131,14 @@ async () => {
         return;
     }
 
-
     startButton.disabled =
         true;
-
 
     status.innerText =
         "📷 Camera शुरू हो रहा है...";
 
-
     const ok =
         await startCamera();
-
 
     if(!ok) {
 
@@ -1071,9 +1149,7 @@ async () => {
 
     }
 
-
     started = true;
-
 
     nextButton.disabled =
         false;
@@ -1087,10 +1163,8 @@ async () => {
     micButton.disabled =
         false;
 
-
     status.innerText =
         "🔎 Stranger खोज रहे हैं...";
-
 
     socket.emit(
         "findPartner"
@@ -1098,10 +1172,6 @@ async () => {
 
 };
 
-
-/* =========================================
-   WAITING
-========================================= */
 
 socket.on(
     "waiting",
@@ -1114,44 +1184,22 @@ socket.on(
 );
 
 
-/* =========================================
-   MATCHED
-========================================= */
-
 socket.on(
     "matched",
     async id => {
 
-        console.log(
-            "MATCHED WITH:",
-            id
-        );
-
-
         partnerId =
             id;
-
 
         status.innerText =
             "🎉 Stranger मिल गया! Video connect हो रही है...";
 
-
         reportButton.disabled =
             false;
 
-
         enableChat();
 
-
         createPeerConnection();
-
-
-        /*
-        IMPORTANT:
-
-        दोनों users में से socket ID
-        छोटा वाला OFFER बनाएगा।
-        */
 
         if(
             socket.id <
@@ -1164,29 +1212,17 @@ socket.on(
                     await peerConnection
                     .createOffer();
 
-
                 await peerConnection
                     .setLocalDescription(
                         offer
                     );
 
-
                 socket.emit(
                     "signal",
                     {
-
-                        type:
-                            "offer",
-
-                        offer:
-                            offer
-
+                        type: "offer",
+                        offer: offer
                     }
-                );
-
-
-                console.log(
-                    "OFFER SENT"
                 );
 
             }
@@ -1206,10 +1242,6 @@ socket.on(
 );
 
 
-/* =========================================
-   WEBRTC SIGNAL
-========================================= */
-
 socket.on(
     "signal",
     async data => {
@@ -1220,20 +1252,8 @@ socket.on(
                 return;
             }
 
-
             const signal =
                 data.signal;
-
-
-            console.log(
-                "SIGNAL RECEIVED:",
-                signal.type
-            );
-
-
-            /* ============================
-               OFFER
-            ============================ */
 
             if(
                 signal.type ===
@@ -1246,7 +1266,6 @@ socket.on(
 
                 }
 
-
                 await peerConnection
                     .setRemoteDescription(
                         new RTCSessionDescription(
@@ -1254,42 +1273,24 @@ socket.on(
                         )
                     );
 
-
                 const answer =
                     await peerConnection
                     .createAnswer();
-
 
                 await peerConnection
                     .setLocalDescription(
                         answer
                     );
 
-
                 socket.emit(
                     "signal",
                     {
-
-                        type:
-                            "answer",
-
-                        answer:
-                            answer
-
+                        type: "answer",
+                        answer: answer
                     }
                 );
 
-
-                console.log(
-                    "ANSWER SENT"
-                );
-
             }
-
-
-            /* ============================
-               ANSWER
-            ============================ */
 
             else if(
                 signal.type ===
@@ -1300,7 +1301,6 @@ socket.on(
                     return;
                 }
 
-
                 await peerConnection
                     .setRemoteDescription(
                         new RTCSessionDescription(
@@ -1308,17 +1308,7 @@ socket.on(
                         )
                     );
 
-
-                console.log(
-                    "ANSWER RECEIVED"
-                );
-
             }
-
-
-            /* ============================
-               ICE CANDIDATE
-            ============================ */
 
             else if(
                 signal.type ===
@@ -1326,11 +1316,8 @@ socket.on(
             ) {
 
                 if(!peerConnection) {
-
                     return;
-
                 }
-
 
                 try {
 
@@ -1340,11 +1327,6 @@ socket.on(
                                 signal.candidate
                             )
                         );
-
-
-                    console.log(
-                        "ICE CANDIDATE ADDED"
-                    );
 
                 }
 
@@ -1374,10 +1356,6 @@ socket.on(
 );
 
 
-/* =========================================
-   CAMERA ON / OFF
-========================================= */
-
 cameraButton.onclick =
 () => {
 
@@ -1385,33 +1363,24 @@ cameraButton.onclick =
         return;
     }
 
-
     const track =
         localStream
         .getVideoTracks()[0];
-
 
     if(!track) {
         return;
     }
 
-
     cameraOn =
         !cameraOn;
 
-
     track.enabled =
         cameraOn;
-
 
     updateControls();
 
 };
 
-
-/* =========================================
-   MIC ON / OFF
-========================================= */
 
 micButton.onclick =
 () => {
@@ -1420,33 +1389,24 @@ micButton.onclick =
         return;
     }
 
-
     const track =
         localStream
         .getAudioTracks()[0];
-
 
     if(!track) {
         return;
     }
 
-
     micOn =
         !micOn;
 
-
     track.enabled =
         micOn;
-
 
     updateControls();
 
 };
 
-
-/* =========================================
-   UPDATE CAMERA/MIC BUTTONS
-========================================= */
 
 function updateControls() {
 
@@ -1454,7 +1414,6 @@ function updateControls() {
         cameraOn
         ? "📹 Camera ON"
         : "📹 Camera OFF";
-
 
     micButton.innerText =
         micOn
@@ -1464,32 +1423,19 @@ function updateControls() {
 }
 
 
-/* =========================================
-   NEXT
-========================================= */
-
 nextButton.onclick =
 () => {
-
-    console.log(
-        "NEXT CLICKED"
-    );
-
 
     partnerVideo.srcObject =
         null;
 
-
     partnerId =
         null;
-
 
     reportButton.disabled =
         true;
 
-
     disableChat();
-
 
     if(peerConnection) {
 
@@ -1503,10 +1449,8 @@ nextButton.onclick =
 
     }
 
-
     status.innerText =
         "🔎 नया Stranger खोज रहे हैं...";
-
 
     socket.emit(
         "next"
@@ -1515,22 +1459,12 @@ nextButton.onclick =
 };
 
 
-/* =========================================
-   STOP
-========================================= */
-
 stopButton.onclick =
 () => {
-
-    console.log(
-        "STOP CLICKED"
-    );
-
 
     socket.emit(
         "stop"
     );
-
 
     if(peerConnection) {
 
@@ -1541,14 +1475,11 @@ stopButton.onclick =
 
     }
 
-
     partnerVideo.srcObject =
         null;
 
-
     partnerId =
         null;
-
 
     if(localStream) {
 
@@ -1558,47 +1489,36 @@ stopButton.onclick =
             track => track.stop()
         );
 
-
         localStream =
             null;
 
     }
 
-
     myVideo.srcObject =
         null;
 
-
     disableChat();
-
 
     reportButton.disabled =
         true;
 
-
     cameraButton.disabled =
         true;
-
 
     micButton.disabled =
         true;
 
-
     nextButton.disabled =
         true;
-
 
     stopButton.disabled =
         true;
 
-
     startButton.disabled =
         false;
 
-
     started =
         false;
-
 
     status.innerText =
         "🛑 Chat बंद हो गया।";
@@ -1606,33 +1526,20 @@ stopButton.onclick =
 };
 
 
-/* =========================================
-   PARTNER DISCONNECTED
-========================================= */
-
 socket.on(
     "partnerDisconnected",
     () => {
 
-        console.log(
-            "PARTNER DISCONNECTED"
-        );
-
-
         partnerVideo.srcObject =
             null;
-
 
         partnerId =
             null;
 
-
         reportButton.disabled =
             true;
 
-
         disableChat();
-
 
         if(peerConnection) {
 
@@ -1643,17 +1550,12 @@ socket.on(
 
         }
 
-
         status.innerText =
             "👋 Stranger चला गया। Next दबाकर नया stranger खोजें।";
 
     }
 );
 
-
-/* =========================================
-   CHAT ENABLE
-========================================= */
 
 function enableChat() {
 
@@ -1665,10 +1567,6 @@ function enableChat() {
 
 }
 
-
-/* =========================================
-   CHAT DISABLE
-========================================= */
 
 function disableChat() {
 
@@ -1684,37 +1582,28 @@ function disableChat() {
 }
 
 
-/* =========================================
-   SEND MESSAGE
-========================================= */
-
 function sendMessage() {
 
     const message =
         messageInput.value.trim();
 
-
     if(!message) {
         return;
     }
 
-
     if(!partnerId) {
         return;
     }
-
 
     socket.emit(
         "chatMessage",
         message
     );
 
-
     addMessage(
         "आप: " + message,
         "my-message"
     );
-
 
     messageInput.value =
         "";
@@ -1722,17 +1611,9 @@ function sendMessage() {
 }
 
 
-/* =========================================
-   SEND BUTTON
-========================================= */
-
 sendButton.onclick =
 sendMessage;
 
-
-/* =========================================
-   ENTER KEY
-========================================= */
 
 messageInput.addEventListener(
     "keydown",
@@ -1751,10 +1632,6 @@ messageInput.addEventListener(
 );
 
 
-/* =========================================
-   RECEIVE CHAT MESSAGE
-========================================= */
-
 socket.on(
     "chatMessage",
     message => {
@@ -1768,10 +1645,6 @@ socket.on(
 );
 
 
-/* =========================================
-   ADD MESSAGE
-========================================= */
-
 function addMessage(
     text,
     className
@@ -1782,30 +1655,22 @@ function addMessage(
             "div"
         );
 
-
     div.className =
         "message " +
         className;
 
-
     div.innerText =
         text;
-
 
     messages.appendChild(
         div
     );
-
 
     messages.scrollTop =
         messages.scrollHeight;
 
 }
 
-
-/* =========================================
-   REPORT OPEN
-========================================= */
 
 reportButton.onclick =
 () => {
@@ -1814,16 +1679,11 @@ reportButton.onclick =
         return;
     }
 
-
     reportOverlay.style.display =
         "flex";
 
 };
 
-
-/* =========================================
-   REPORT CANCEL
-========================================= */
 
 cancelReport.onclick =
 () => {
@@ -1834,10 +1694,6 @@ cancelReport.onclick =
 };
 
 
-/* =========================================
-   REPORT SUBMIT
-========================================= */
-
 submitReport.onclick =
 () => {
 
@@ -1845,7 +1701,6 @@ submitReport.onclick =
         document.querySelector(
             'input[name="reportReason"]:checked'
         );
-
 
     if(!selected) {
 
@@ -1857,35 +1712,25 @@ submitReport.onclick =
 
     }
 
-
     socket.emit(
         "reportUser",
         {
-
             reason:
                 selected.value
-
         }
     );
 
-
     reportOverlay.style.display =
         "none";
-
 
     alert(
         "🚨 Report भेज दी गई है।"
     );
 
-
     nextButton.click();
 
 };
 
-
-/* =========================================
-   SOCKET CONNECT
-========================================= */
 
 socket.on(
     "connect",
@@ -1899,10 +1744,6 @@ socket.on(
     }
 );
 
-
-/* =========================================
-   SOCKET DISCONNECT
-========================================= */
 
 socket.on(
     "disconnect",
