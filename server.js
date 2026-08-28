@@ -1,4 +1,3 @@
-```javascript
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -6,535 +5,235 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 
-const io = new Server(server, {
-    cors: {
-        origin: "*"
-    }
-});
-
-
-// =====================================
-// WEBSITE
-// =====================================
+const io = new Server(server);
 
 app.use(express.static(__dirname));
 
-
-// =====================================
-// WAITING USER
-// =====================================
-
 let waitingUser = null;
 
+io.on("connection", (socket) => {
 
-// =====================================
-// FIND PARTNER FUNCTION
-// =====================================
+    console.log("User connected:", socket.id);
 
-function findPartner(socket) {
+    socket.on("findPartner", () => {
 
-    // Already connected
-    if (socket.partnerId) {
-        return;
-    }
+        if (socket.partner) return;
 
-
-    // Already waiting
-    if (waitingUser === socket.id) {
-
-        socket.emit("waiting");
-
-        return;
-    }
-
-
-    // =================================
-    // CHECK WAITING USER
-    // =================================
-
-    if (waitingUser) {
-
-        const partner =
-            io.sockets.sockets.get(
-                waitingUser
-            );
-
-
-        // Waiting user exists
         if (
-            partner &&
-            partner.id !== socket.id
+            waitingUser &&
+            waitingUser !== socket.id &&
+            io.sockets.sockets.has(waitingUser)
         ) {
 
-            // Remove waiting user
+            const partnerSocket =
+                io.sockets.sockets.get(waitingUser);
+
             waitingUser = null;
 
+            socket.partner = partnerSocket.id;
+            partnerSocket.partner = socket.id;
 
-            // Save partner IDs
-            socket.partnerId =
-                partner.id;
-
-            partner.partnerId =
-                socket.id;
-
+            socket.emit("matched", partnerSocket.id);
+            partnerSocket.emit("matched", socket.id);
 
             console.log(
                 "MATCHED:",
                 socket.id,
                 "<->",
-                partner.id
+                partnerSocket.id
             );
 
+        } else {
 
-            // IMPORTANT:
-            // Send partner ID directly
-            // because your index.html expects:
-            // socket.on("matched", id => {})
+            waitingUser = socket.id;
 
-
-            partner.emit(
-                "matched",
-                socket.id
-            );
-
-
-            socket.emit(
-                "matched",
-                partner.id
-            );
-
-
-            return;
-        }
-
-
-        // Waiting user disappeared
-        waitingUser = null;
-
-    }
-
-
-    // =================================
-    // WAITING
-    // =================================
-
-    waitingUser =
-        socket.id;
-
-
-    socket.emit("waiting");
-
-
-    console.log(
-        "WAITING:",
-        socket.id
-    );
-
-}
-
-
-// =====================================
-// SOCKET CONNECTION
-// =====================================
-
-io.on("connection", (socket) => {
-
-    console.log(
-        "USER CONNECTED:",
-        socket.id
-    );
-
-
-    // =================================
-    // FIND PARTNER
-    // =================================
-
-    socket.on(
-        "findPartner",
-        () => {
+            socket.emit("waiting");
 
             console.log(
-                "FIND PARTNER:",
+                "WAITING:",
                 socket.id
             );
-
-
-            findPartner(socket);
-
         }
-    );
+    });
 
+    socket.on("signal", (data) => {
 
-    // =================================
-    // WEBRTC SIGNAL
-    // =================================
+        if (!socket.partner) return;
 
-    socket.on(
-        "signal",
-        (data) => {
+        const partnerSocket =
+            io.sockets.sockets.get(socket.partner);
 
-            /*
-             Your index.html sends:
+        if (partnerSocket) {
 
-             socket.emit("signal", {
-                 type: "offer",
-                 offer: offer
-             });
+            partnerSocket.emit("signal", {
+                from: socket.id,
+                signal: data
+            });
+        }
+    });
 
-             Therefore server must read:
-             data.type
-             data.offer
-             */
+    socket.on("chatMessage", (message) => {
 
+        if (!socket.partner) return;
 
-            if (!socket.partnerId) {
+        const partnerSocket =
+            io.sockets.sockets.get(socket.partner);
 
-                console.log(
-                    "No partner for signal:",
-                    socket.id
+        if (partnerSocket) {
+
+            partnerSocket.emit(
+                "chatMessage",
+                message
+            );
+        }
+    });
+
+    socket.on("next", () => {
+
+        if (waitingUser === socket.id) {
+            waitingUser = null;
+        }
+
+        const oldPartnerId = socket.partner;
+
+        socket.partner = null;
+
+        if (oldPartnerId) {
+
+            const partnerSocket =
+                io.sockets.sockets.get(oldPartnerId);
+
+            if (partnerSocket) {
+
+                partnerSocket.partner = null;
+
+                partnerSocket.emit(
+                    "partnerDisconnected"
                 );
-
-                return;
             }
+        }
 
+        findNewPartner(socket);
+    });
 
-            const partner =
-                io.sockets.sockets.get(
-                    socket.partnerId
+    socket.on("stop", () => {
+
+        if (waitingUser === socket.id) {
+            waitingUser = null;
+        }
+
+        const oldPartnerId = socket.partner;
+
+        socket.partner = null;
+
+        if (oldPartnerId) {
+
+            const partnerSocket =
+                io.sockets.sockets.get(oldPartnerId);
+
+            if (partnerSocket) {
+
+                partnerSocket.partner = null;
+
+                partnerSocket.emit(
+                    "partnerDisconnected"
                 );
+            }
+        }
 
+        console.log(
+            "STOP:",
+            socket.id
+        );
+    });
 
-            if (!partner) {
+    socket.on("reportUser", (reportData) => {
 
-                console.log(
-                    "Partner not found:",
-                    socket.partnerId
+        console.log(
+            "REPORT:",
+            socket.id,
+            reportData
+        );
+    });
+
+    socket.on("disconnect", () => {
+
+        console.log(
+            "User disconnected:",
+            socket.id
+        );
+
+        if (waitingUser === socket.id) {
+            waitingUser = null;
+        }
+
+        const partnerId = socket.partner;
+
+        if (partnerId) {
+
+            const partnerSocket =
+                io.sockets.sockets.get(partnerId);
+
+            if (partnerSocket) {
+
+                partnerSocket.partner = null;
+
+                partnerSocket.emit(
+                    "partnerDisconnected"
                 );
-
-                return;
             }
-
-
-            // Forward signal exactly as received
-
-            partner.emit(
-                "signal",
-                {
-                    from: socket.id,
-                    signal: data
-                }
-            );
-
-
-            console.log(
-                "SIGNAL:",
-                data.type,
-                socket.id,
-                "->",
-                socket.partnerId
-            );
-
         }
-    );
-
-
-    // =================================
-    // NEXT
-    // =================================
-
-    socket.on(
-        "next",
-        () => {
-
-            console.log(
-                "NEXT:",
-                socket.id
-            );
-
-
-            // Remove from waiting
-            if (
-                waitingUser ===
-                socket.id
-            ) {
-
-                waitingUser = null;
-
-            }
-
-
-            // Save old partner
-            const oldPartnerId =
-                socket.partnerId;
-
-
-            // Remove own partner
-            socket.partnerId =
-                null;
-
-
-            // =================================
-            // TELL OLD PARTNER
-            // =================================
-
-            if (oldPartnerId) {
-
-                const oldPartner =
-                    io.sockets.sockets.get(
-                        oldPartnerId
-                    );
-
-
-                if (oldPartner) {
-
-                    oldPartner.partnerId =
-                        null;
-
-
-                    oldPartner.emit(
-                        "partnerDisconnected"
-                    );
-
-                }
-
-            }
-
-
-            // =================================
-            // FIND NEW PARTNER
-            // =================================
-
-            setTimeout(
-                () => {
-
-                    if (
-                        io.sockets.sockets.has(
-                            socket.id
-                        )
-                    ) {
-
-                        findPartner(socket);
-
-                    }
-
-                },
-                200
-            );
-
-        }
-    );
-
-
-    // =================================
-    // STOP
-    // =================================
-
-    socket.on(
-        "stop",
-        () => {
-
-            console.log(
-                "STOP:",
-                socket.id
-            );
-
-
-            // Remove waiting
-            if (
-                waitingUser ===
-                socket.id
-            ) {
-
-                waitingUser = null;
-
-            }
-
-
-            // Old partner
-            const oldPartnerId =
-                socket.partnerId;
-
-
-            // Clear own partner
-            socket.partnerId =
-                null;
-
-
-            // Tell partner
-            if (oldPartnerId) {
-
-                const partner =
-                    io.sockets.sockets.get(
-                        oldPartnerId
-                    );
-
-
-                if (partner) {
-
-                    partner.partnerId =
-                        null;
-
-
-                    partner.emit(
-                        "partnerDisconnected"
-                    );
-
-                }
-
-            }
-
-        }
-    );
-
-
-    // =================================
-    // TEXT CHAT
-    // =================================
-
-    socket.on(
-        "chatMessage",
-        (message) => {
-
-            if (!socket.partnerId) {
-                return;
-            }
-
-
-            const partner =
-                io.sockets.sockets.get(
-                    socket.partnerId
-                );
-
-
-            if (partner) {
-
-                partner.emit(
-                    "chatMessage",
-                    message
-                );
-
-            }
-
-        }
-    );
-
-
-    // =================================
-    // REPORT
-    // =================================
-
-    socket.on(
-        "reportUser",
-        (reportData) => {
-
-            console.log(
-                "REPORT:",
-                socket.id
-            );
-
-            console.log(
-                "Partner:",
-                socket.partnerId
-            );
-
-            console.log(
-                "Reason:",
-                reportData
-            );
-
-        }
-    );
-
-
-    // =================================
-    // DISCONNECT
-    // =================================
-
-    socket.on(
-        "disconnect",
-        () => {
-
-            console.log(
-                "USER DISCONNECTED:",
-                socket.id
-            );
-
-
-            // Remove waiting
-            if (
-                waitingUser ===
-                socket.id
-            ) {
-
-                waitingUser = null;
-
-            }
-
-
-            // Get partner
-            const partnerId =
-                socket.partnerId;
-
-
-            // Tell partner
-            if (partnerId) {
-
-                const partner =
-                    io.sockets.sockets.get(
-                        partnerId
-                    );
-
-
-                if (partner) {
-
-                    partner.partnerId =
-                        null;
-
-
-                    partner.emit(
-                        "partnerDisconnected"
-                    );
-
-                }
-
-            }
-
-        }
-    );
-
+    });
 });
 
+function findNewPartner(socket) {
 
-// =====================================
-// SERVER START
-// =====================================
+    if (
+        waitingUser &&
+        waitingUser !== socket.id &&
+        io.sockets.sockets.has(waitingUser)
+    ) {
 
-const PORT =
-    process.env.PORT || 3000;
+        const partnerSocket =
+            io.sockets.sockets.get(waitingUser);
 
+        waitingUser = null;
 
-server.listen(
-    PORT,
-    "0.0.0.0",
-    () => {
+        socket.partner = partnerSocket.id;
+        partnerSocket.partner = socket.id;
 
-        console.log(
-            "===================================="
+        socket.emit("matched", partnerSocket.id);
+
+        partnerSocket.emit(
+            "matched",
+            socket.id
         );
 
         console.log(
-            "       QMEGLE SERVER STARTED"
+            "NEW MATCH:",
+            socket.id,
+            "<->",
+            partnerSocket.id
         );
+
+    } else {
+
+        waitingUser = socket.id;
+
+        socket.emit("waiting");
 
         console.log(
-            "       PORT:",
-            PORT
+            "WAITING:",
+            socket.id
         );
-
-        console.log(
-            "===================================="
-        );
-
     }
-);
-```
+}
+
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, "0.0.0.0", () => {
+
+    console.log(
+        "Qmegle server running on port " + PORT
+    );
+});
