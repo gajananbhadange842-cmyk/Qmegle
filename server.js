@@ -1,21 +1,22 @@
+require("dotenv").config();
+
 const express = require("express");
 const http = require("http");
+const crypto = require("crypto");
 const { Server } = require("socket.io");
+const { MongoClient, ObjectId } = require("mongodb");
 
 const app = express();
 const server = http.createServer(app);
+
+app.use(express.json());
+app.use(express.static(__dirname));
 
 const io = new Server(server, {
     cors: {
         origin: "*"
     }
 });
-
-// =====================================
-// WEBSITE FILES
-// =====================================
-
-app.use(express.static(__dirname));
 
 // =====================================
 // GOOGLE SEARCH CONSOLE VERIFICATION
@@ -26,6 +27,311 @@ app.get("/googlea552bb0021f0b836.html", (req, res) => {
         .type("html")
         .send("google-site-verification: googlea552bb0021f0b836.html");
 });
+
+// =====================================
+// MONGODB
+// =====================================
+
+const mongoUri = process.env.MONGODB_URI;
+
+let mongoClient = null;
+let reportsCollection = null;
+
+async function connectMongoDB() {
+
+    try {
+
+        if (!mongoUri) {
+            console.log("❌ MONGODB_URI missing in .env");
+            return;
+        }
+
+        mongoClient = new MongoClient(mongoUri);
+
+        await mongoClient.connect();
+
+        const db =
+            mongoClient.db("qmegle");
+
+        reportsCollection =
+            db.collection("reports");
+
+        console.log("=================================");
+        console.log("✅ MongoDB Connected");
+        console.log("📁 Database: qmegle");
+        console.log("📁 Collection: reports");
+        console.log("=================================");
+
+    } catch (error) {
+
+        console.error(
+            "❌ MongoDB Error:",
+            error.message
+        );
+    }
+}
+
+// =====================================
+// ADMIN AUTHENTICATION
+// =====================================
+
+const adminPassword =
+    process.env.ADMIN_PASSWORD;
+
+const adminTokens =
+    new Map();
+
+function createAdminToken() {
+
+    return crypto.randomBytes(32).toString("hex");
+}
+
+function isAdmin(req) {
+
+    const auth =
+        req.headers.authorization || "";
+
+    if (!auth.startsWith("Bearer ")) {
+        return false;
+    }
+
+    const token =
+        auth.substring(7);
+
+    return adminTokens.has(token);
+}
+
+// =====================================
+// ADMIN LOGIN
+// =====================================
+
+app.post("/admin/login", (req, res) => {
+
+    const password =
+        req.body?.password;
+
+    if (!adminPassword) {
+
+        return res.status(500).json({
+            error:
+                "ADMIN_PASSWORD is not configured."
+        });
+    }
+
+    if (
+        typeof password !== "string" ||
+        password !== adminPassword
+    ) {
+
+        return res.status(401).json({
+            error:
+                "Wrong admin password."
+        });
+    }
+
+    const token =
+        createAdminToken();
+
+    adminTokens.set(
+        token,
+        Date.now()
+    );
+
+    console.log(
+        "🔐 Admin login successful"
+    );
+
+    res.json({
+        success: true,
+        token: token
+    });
+});
+
+// =====================================
+// ADMIN REPORTS
+// =====================================
+
+app.get("/admin/reports", async (req, res) => {
+
+    if (!isAdmin(req)) {
+
+        return res.status(401).json({
+            error:
+                "Unauthorized"
+        });
+    }
+
+    try {
+
+        if (!reportsCollection) {
+
+            return res.status(503).json({
+                error:
+                    "MongoDB is not connected."
+            });
+        }
+
+        const reports =
+            await reportsCollection
+            .find({})
+            .sort({
+                timestamp: -1
+            })
+            .limit(500)
+            .toArray();
+
+        res.json({
+            success: true,
+            reports: reports
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Reports error:",
+            error.message
+        );
+
+        res.status(500).json({
+            error:
+                "Could not load reports."
+        });
+    }
+});
+
+// =====================================
+// MARK REPORT REVIEWED
+// =====================================
+
+app.post(
+    "/admin/reports/:id/review",
+    async (req, res) => {
+
+        if (!isAdmin(req)) {
+
+            return res.status(401).json({
+                error:
+                    "Unauthorized"
+            });
+        }
+
+        try {
+
+            if (!reportsCollection) {
+
+                return res.status(503).json({
+                    error:
+                        "MongoDB is not connected."
+                });
+            }
+
+            const id =
+                req.params.id;
+
+            if (!ObjectId.isValid(id)) {
+
+                return res.status(400).json({
+                    error:
+                        "Invalid report ID."
+                });
+            }
+
+            await reportsCollection.updateOne(
+                {
+                    _id:
+                        new ObjectId(id)
+                },
+                {
+                    $set: {
+                        status:
+                            "reviewed",
+                        reviewedAt:
+                            new Date()
+                    }
+                }
+            );
+
+            res.json({
+                success: true
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Review error:",
+                error.message
+            );
+
+            res.status(500).json({
+                error:
+                    "Could not update report."
+            });
+        }
+    }
+);
+
+// =====================================
+// DELETE REPORT
+// =====================================
+
+app.delete(
+    "/admin/reports/:id",
+    async (req, res) => {
+
+        if (!isAdmin(req)) {
+
+            return res.status(401).json({
+                error:
+                    "Unauthorized"
+            });
+        }
+
+        try {
+
+            if (!reportsCollection) {
+
+                return res.status(503).json({
+                    error:
+                        "MongoDB is not connected."
+                });
+            }
+
+            const id =
+                req.params.id;
+
+            if (!ObjectId.isValid(id)) {
+
+                return res.status(400).json({
+                    error:
+                        "Invalid report ID."
+                });
+            }
+
+            await reportsCollection.deleteOne(
+                {
+                    _id:
+                        new ObjectId(id)
+                }
+            );
+
+            res.json({
+                success: true
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Delete error:",
+                error.message
+            );
+
+            res.status(500).json({
+                error:
+                    "Could not delete report."
+            });
+        }
+    }
+);
 
 // =====================================
 // WAITING USER
@@ -45,10 +351,11 @@ const allowedReportReasons = [
     "Other"
 ];
 
-// Prevent repeated reports from same user
-const reportCooldown = new Map();
+const reportCooldown =
+    new Map();
 
-const REPORT_COOLDOWN_MS = 30 * 1000;
+const REPORT_COOLDOWN_MS =
+    30 * 1000;
 
 // =====================================
 // SOCKET CONNECTION
@@ -56,9 +363,10 @@ const REPORT_COOLDOWN_MS = 30 * 1000;
 
 io.on("connection", (socket) => {
 
-    console.log("=================================");
-    console.log("User connected:", socket.id);
-    console.log("=================================");
+    console.log(
+        "User connected:",
+        socket.id
+    );
 
     // =================================
     // FIND PARTNER
@@ -66,16 +374,17 @@ io.on("connection", (socket) => {
 
     socket.on("findPartner", () => {
 
-        console.log("Find partner:", socket.id);
-
         if (socket.partner) {
             return;
         }
 
         if (
             waitingUser &&
-            !io.sockets.sockets.has(waitingUser)
+            !io.sockets.sockets.has(
+                waitingUser
+            )
         ) {
+
             waitingUser = null;
         }
 
@@ -84,27 +393,40 @@ io.on("connection", (socket) => {
             waitingUser !== socket.id
         ) {
 
-            const partnerId = waitingUser;
+            const partnerId =
+                waitingUser;
 
             const partnerSocket =
-                io.sockets.sockets.get(partnerId);
+                io.sockets.sockets.get(
+                    partnerId
+                );
 
             waitingUser = null;
 
             if (partnerSocket) {
 
-                socket.partner = partnerId;
-                partnerSocket.partner = socket.id;
+                socket.partner =
+                    partnerId;
+
+                partnerSocket.partner =
+                    socket.id;
 
                 socket.emit("matched", {
-                    partner: partnerId,
-                    initiator: true
+                    partner:
+                        partnerId,
+                    initiator:
+                        true
                 });
 
-                partnerSocket.emit("matched", {
-                    partner: socket.id,
-                    initiator: false
-                });
+                partnerSocket.emit(
+                    "matched",
+                    {
+                        partner:
+                            socket.id,
+                        initiator:
+                            false
+                    }
+                );
 
                 console.log(
                     "MATCHED:",
@@ -115,20 +437,21 @@ io.on("connection", (socket) => {
 
             } else {
 
-                waitingUser = socket.id;
+                waitingUser =
+                    socket.id;
 
-                socket.emit("waiting");
+                socket.emit(
+                    "waiting"
+                );
             }
 
         } else {
 
-            waitingUser = socket.id;
+            waitingUser =
+                socket.id;
 
-            socket.emit("waiting");
-
-            console.log(
-                "WAITING:",
-                socket.id
+            socket.emit(
+                "waiting"
             );
         }
     });
@@ -148,50 +471,64 @@ io.on("connection", (socket) => {
         }
 
         const partnerSocket =
-            io.sockets.sockets.get(socket.partner);
+            io.sockets.sockets.get(
+                socket.partner
+            );
 
         if (!partnerSocket) {
             return;
         }
 
-        partnerSocket.emit("signal", {
-            from: socket.id,
-            signal: data
-        });
+        partnerSocket.emit(
+            "signal",
+            {
+                from:
+                    socket.id,
+                signal:
+                    data
+            }
+        );
     });
 
     // =================================
     // TEXT CHAT
     // =================================
 
-    socket.on("chatMessage", (message) => {
+    socket.on(
+        "chatMessage",
+        (message) => {
 
-        if (!socket.partner) {
-            return;
+            if (!socket.partner) {
+                return;
+            }
+
+            if (
+                typeof message !==
+                "string" ||
+                !message.trim()
+            ) {
+                return;
+            }
+
+            const cleanMessage =
+                message
+                .trim()
+                .slice(0, 1000);
+
+            const partnerSocket =
+                io.sockets.sockets.get(
+                    socket.partner
+                );
+
+            if (partnerSocket) {
+
+                partnerSocket.emit(
+                    "chatMessage",
+                    cleanMessage
+                );
+            }
         }
-
-        if (
-            typeof message !== "string" ||
-            !message.trim()
-        ) {
-            return;
-        }
-
-        // Limit message length
-        const cleanMessage =
-            message.trim().slice(0, 1000);
-
-        const partnerSocket =
-            io.sockets.sockets.get(socket.partner);
-
-        if (partnerSocket) {
-
-            partnerSocket.emit(
-                "chatMessage",
-                cleanMessage
-            );
-        }
-    });
+    );
 
     // =================================
     // NEXT
@@ -199,12 +536,11 @@ io.on("connection", (socket) => {
 
     socket.on("next", () => {
 
-        console.log(
-            "NEXT:",
+        if (
+            waitingUser ===
             socket.id
-        );
+        ) {
 
-        if (waitingUser === socket.id) {
             waitingUser = null;
         }
 
@@ -222,7 +558,8 @@ io.on("connection", (socket) => {
 
             if (partnerSocket) {
 
-                partnerSocket.partner = null;
+                partnerSocket.partner =
+                    null;
 
                 partnerSocket.emit(
                     "partnerDisconnected"
@@ -230,7 +567,9 @@ io.on("connection", (socket) => {
             }
         }
 
-        findNewPartner(socket);
+        findNewPartner(
+            socket
+        );
     });
 
     // =================================
@@ -239,12 +578,11 @@ io.on("connection", (socket) => {
 
     socket.on("stop", () => {
 
-        console.log(
-            "STOP:",
+        if (
+            waitingUser ===
             socket.id
-        );
+        ) {
 
-        if (waitingUser === socket.id) {
             waitingUser = null;
         }
 
@@ -262,7 +600,8 @@ io.on("connection", (socket) => {
 
             if (partnerSocket) {
 
-                partnerSocket.partner = null;
+                partnerSocket.partner =
+                    null;
 
                 partnerSocket.emit(
                     "partnerDisconnected"
@@ -272,179 +611,171 @@ io.on("connection", (socket) => {
     });
 
     // =================================
-    // REPORT USER
+    // REPORT
     // =================================
 
-    socket.on("reportUser", (reportData) => {
+    socket.on(
+        "reportUser",
+        async (reportData) => {
 
-        const reportedUser =
-            socket.partner;
+            try {
 
-        // Must have an active partner
-        if (!reportedUser) {
+                const reportedUser =
+                    socket.partner;
 
-            console.log(
-                "REPORT BLOCKED: No partner",
-                socket.id
-            );
+                if (!reportedUser) {
+                    return;
+                }
 
-            return;
+                if (
+                    !reportData ||
+                    typeof reportData.reason !==
+                    "string"
+                ) {
+                    return;
+                }
+
+                const reason =
+                    reportData.reason.trim();
+
+                if (
+                    !allowedReportReasons
+                    .includes(reason)
+                ) {
+                    return;
+                }
+
+                const lastReport =
+                    reportCooldown.get(
+                        socket.id
+                    );
+
+                if (
+                    lastReport &&
+                    Date.now() -
+                    lastReport <
+                    REPORT_COOLDOWN_MS
+                ) {
+
+                    return;
+                }
+
+                reportCooldown.set(
+                    socket.id,
+                    Date.now()
+                );
+
+                const report = {
+
+                    reporterId:
+                        socket.id,
+
+                    reportedUserId:
+                        reportedUser,
+
+                    reason:
+                        reason,
+
+                    timestamp:
+                        new Date(),
+
+                    status:
+                        "new"
+                };
+
+                if (
+                    reportsCollection
+                ) {
+
+                    await reportsCollection
+                        .insertOne(
+                            report
+                        );
+
+                    console.log(
+                        "🚨 Report saved to MongoDB"
+                    );
+                }
+
+                const partnerSocket =
+                    io.sockets.sockets.get(
+                        reportedUser
+                    );
+
+                socket.partner =
+                    null;
+
+                if (partnerSocket) {
+
+                    partnerSocket.partner =
+                        null;
+
+                    partnerSocket.emit(
+                        "partnerDisconnected"
+                    );
+                }
+
+                socket.emit(
+                    "reportAccepted"
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Report error:",
+                    error.message
+                );
+            }
         }
-
-        // Validate report data
-        if (
-            !reportData ||
-            typeof reportData.reason !== "string"
-        ) {
-
-            console.log(
-                "REPORT BLOCKED: Invalid data",
-                socket.id
-            );
-
-            return;
-        }
-
-        const reason =
-            reportData.reason.trim();
-
-        // Only allow known reasons
-        if (
-            !allowedReportReasons.includes(reason)
-        ) {
-
-            console.log(
-                "REPORT BLOCKED: Invalid reason",
-                reason
-            );
-
-            return;
-        }
-
-        // Report cooldown
-        const lastReport =
-            reportCooldown.get(socket.id);
-
-        if (
-            lastReport &&
-            Date.now() - lastReport <
-            REPORT_COOLDOWN_MS
-        ) {
-
-            console.log(
-                "REPORT BLOCKED: Cooldown",
-                socket.id
-            );
-
-            return;
-        }
-
-        reportCooldown.set(
-            socket.id,
-            Date.now()
-        );
-
-        // =================================
-        // SAVE REPORT IN SERVER MEMORY
-        // =================================
-
-        const report = {
-
-            reporterId:
-                socket.id,
-
-            reportedUserId:
-                reportedUser,
-
-            reason:
-                reason,
-
-            timestamp:
-                new Date().toISOString()
-        };
-
-        console.log("");
-        console.log("=================================");
-        console.log("🚨 QMEGLE REPORT");
-        console.log("Reporter:", report.reporterId);
-        console.log(
-            "Reported User:",
-            report.reportedUserId
-        );
-        console.log(
-            "Reason:",
-            report.reason
-        );
-        console.log(
-            "Time:",
-            report.timestamp
-        );
-        console.log("=================================");
-        console.log("");
-
-        // =================================
-        // DISCONNECT BOTH USERS
-        // =================================
-
-        const partnerSocket =
-            io.sockets.sockets.get(
-                reportedUser
-            );
-
-        socket.partner = null;
-
-        if (partnerSocket) {
-
-            partnerSocket.partner = null;
-
-            partnerSocket.emit(
-                "partnerDisconnected"
-            );
-        }
-
-        socket.emit(
-            "reportAccepted"
-        );
-    });
+    );
 
     // =================================
     // DISCONNECT
     // =================================
 
-    socket.on("disconnect", () => {
+    socket.on(
+        "disconnect",
+        () => {
 
-        console.log(
-            "User disconnected:",
-            socket.id
-        );
+            if (
+                waitingUser ===
+                socket.id
+            ) {
 
-        if (waitingUser === socket.id) {
-            waitingUser = null;
-        }
-
-        // Remove cooldown memory
-        reportCooldown.delete(socket.id);
-
-        const partnerId =
-            socket.partner;
-
-        if (partnerId) {
-
-            const partnerSocket =
-                io.sockets.sockets.get(
-                    partnerId
-                );
-
-            if (partnerSocket) {
-
-                partnerSocket.partner = null;
-
-                partnerSocket.emit(
-                    "partnerDisconnected"
-                );
+                waitingUser = null;
             }
+
+            reportCooldown.delete(
+                socket.id
+            );
+
+            const partnerId =
+                socket.partner;
+
+            if (partnerId) {
+
+                const partnerSocket =
+                    io.sockets.sockets.get(
+                        partnerId
+                    );
+
+                if (partnerSocket) {
+
+                    partnerSocket.partner =
+                        null;
+
+                    partnerSocket.emit(
+                        "partnerDisconnected"
+                    );
+                }
+            }
+
+            console.log(
+                "User disconnected:",
+                socket.id
+            );
         }
-    });
+    );
 });
 
 // =====================================
@@ -453,15 +784,13 @@ io.on("connection", (socket) => {
 
 function findNewPartner(socket) {
 
-    console.log(
-        "Finding new partner:",
-        socket.id
-    );
-
     if (
         waitingUser &&
-        !io.sockets.sockets.has(waitingUser)
+        !io.sockets.sockets.has(
+            waitingUser
+        )
     ) {
+
         waitingUser = null;
     }
 
@@ -488,21 +817,24 @@ function findNewPartner(socket) {
             partnerSocket.partner =
                 socket.id;
 
-            socket.emit("matched", {
-                partner: partnerId,
-                initiator: true
-            });
+            socket.emit(
+                "matched",
+                {
+                    partner:
+                        partnerId,
+                    initiator:
+                        true
+                }
+            );
 
-            partnerSocket.emit("matched", {
-                partner: socket.id,
-                initiator: false
-            });
-
-            console.log(
-                "NEW MATCH:",
-                socket.id,
-                "<->",
-                partnerId
+            partnerSocket.emit(
+                "matched",
+                {
+                    partner:
+                        socket.id,
+                    initiator:
+                        false
+                }
             );
 
         } else {
@@ -510,7 +842,9 @@ function findNewPartner(socket) {
             waitingUser =
                 socket.id;
 
-            socket.emit("waiting");
+            socket.emit(
+                "waiting"
+            );
         }
 
     } else {
@@ -518,11 +852,8 @@ function findNewPartner(socket) {
         waitingUser =
             socket.id;
 
-        socket.emit("waiting");
-
-        console.log(
-            "WAITING FOR NEW PARTNER:",
-            socket.id
+        socket.emit(
+            "waiting"
         );
     }
 }
@@ -534,37 +865,37 @@ function findNewPartner(socket) {
 const PORT =
     process.env.PORT || 3000;
 
-server.listen(
-    PORT,
-    "0.0.0.0",
-    () => {
+async function startServer() {
 
-        console.log("");
-        console.log(
-            "================================="
-        );
+    await connectMongoDB();
 
-        console.log(
-            "🚀 Qmegle Server Started"
-        );
+    server.listen(
+        PORT,
+        "0.0.0.0",
+        () => {
 
-        console.log(
-            "🌐 Port:",
-            PORT
-        );
+            console.log("");
+            console.log(
+                "================================="
+            );
 
-        console.log(
-            "🔎 Google verification enabled"
-        );
+            console.log(
+                "🚀 Qmegle Server Started"
+            );
 
-        console.log(
-            "🛡️ Report protection enabled"
-        );
+            console.log(
+                "🛡️ Admin Panel Enabled"
+            );
 
-        console.log(
-            "================================="
-        );
+            console.log(
+                "🗄️ MongoDB Reports Enabled"
+            );
 
-        console.log("");
-    }
-);
+            console.log(
+                "================================="
+            );
+        }
+    );
+}
+
+startServer();
