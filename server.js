@@ -26,23 +26,23 @@ app.get("/", (req, res) => {
 // =====================================
 
 app.get("/random-video-chat", (req, res) => {
-    res.sendFile(path.join(__dirname, "random-video-chat.html"));
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.get("/free-video-chat", (req, res) => {
-    res.sendFile(path.join(__dirname, "free-video-chat.html"));
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.get("/chat-with-strangers", (req, res) => {
-    res.sendFile(path.join(__dirname, "chat-with-strangers.html"));
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.get("/random-text-chat", (req, res) => {
-    res.sendFile(path.join(__dirname, "random-text-chat.html"));
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.get("/omegle-alternative", (req, res) => {
-    res.sendFile(path.join(__dirname, "omegle-alternative.html"));
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // =====================================
