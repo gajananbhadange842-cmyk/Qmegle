@@ -80,7 +80,7 @@ if (waitingUser && waitingUser !== socket.id) {
   waitingUser = null;
 
   // Put both users in the same room
-  const room = `${partner}-${socket.id}`;
+  const room = partner + "-" + socket.id;
 
   socket.join(room);
   io.sockets.sockets.get(partner)?.join(room);
