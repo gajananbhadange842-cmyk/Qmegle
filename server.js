@@ -1,3 +1,4 @@
+```javascript
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -29,6 +30,39 @@ app.use(express.static(__dirname));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
+
+/* =========================================
+   ARTICLES
+========================================= */
+
+app.get("/articles", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "articles", "index.html")
+  );
+});
+
+app.get("/articles/", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "articles", "index.html")
+  );
+});
+
+/* =========================================
+   ARTICLE DETAIL PAGES
+========================================= */
+
+app.get(
+  "/articles/strangers-se-baat-karne-me-jhijhak",
+  (req, res) => {
+    res.sendFile(
+      path.join(
+        __dirname,
+        "articles",
+        "strangers-se-baat-karne-me-jhijhak.html"
+      )
+    );
+  }
+);
 
 /* =========================================
    HEALTH CHECK
@@ -85,15 +119,8 @@ const onlineUsers = new Set();
 
 const nextUsers = new Set();
 
-/*
-  Same users ko immediately dobara match
-  hone se rokne ke liye cooldown.
-*/
 const PAIR_COOLDOWN = 5 * 60 * 1000;
 
-/*
-  Next ke baad new stranger search delay.
-*/
 const NEXT_SEARCH_TIME = 2000;
 
 /* =========================================
@@ -111,23 +138,16 @@ function pairKey(a, b) {
 ========================================= */
 
 function isRecentPair(a, b) {
-
   const key = pairKey(a, b);
 
-  const time =
-    recentPairs.get(key);
+  const time = recentPairs.get(key);
 
   if (!time) {
     return false;
   }
 
-  if (
-    Date.now() - time >
-    PAIR_COOLDOWN
-  ) {
-
+  if (Date.now() - time > PAIR_COOLDOWN) {
     recentPairs.delete(key);
-
     return false;
   }
 
@@ -139,12 +159,10 @@ function isRecentPair(a, b) {
 ========================================= */
 
 function rememberPair(a, b) {
-
   recentPairs.set(
     pairKey(a, b),
     Date.now()
   );
-
 }
 
 /* =========================================
@@ -152,21 +170,13 @@ function rememberPair(a, b) {
 ========================================= */
 
 function removeFromQueue(socketId) {
-
   let index;
 
   while (
-    (index =
-      waitingQueue.indexOf(socketId)) !== -1
+    (index = waitingQueue.indexOf(socketId)) !== -1
   ) {
-
-    waitingQueue.splice(
-      index,
-      1
-    );
-
+    waitingQueue.splice(index, 1);
   }
-
 }
 
 /* =========================================
@@ -174,22 +184,15 @@ function removeFromQueue(socketId) {
 ========================================= */
 
 function addToQueue(socketId) {
-
-  if (
-    !onlineUsers.has(socketId)
-  ) {
+  if (!onlineUsers.has(socketId)) {
     return false;
   }
 
-  if (
-    partners.has(socketId)
-  ) {
+  if (partners.has(socketId)) {
     return false;
   }
 
-  if (
-    waitingQueue.includes(socketId)
-  ) {
+  if (waitingQueue.includes(socketId)) {
     return false;
   }
 
@@ -208,30 +211,20 @@ function addToQueue(socketId) {
 ========================================= */
 
 function cleanQueue() {
-
   for (
     let i = waitingQueue.length - 1;
     i >= 0;
     i--
   ) {
-
-    const id =
-      waitingQueue[i];
+    const id = waitingQueue[i];
 
     if (
       !onlineUsers.has(id) ||
       partners.has(id)
     ) {
-
-      waitingQueue.splice(
-        i,
-        1
-      );
-
+      waitingQueue.splice(i, 1);
     }
-
   }
-
 }
 
 /* =========================================
@@ -239,43 +232,27 @@ function cleanQueue() {
 ========================================= */
 
 function findBestStranger(socketId) {
-
   cleanQueue();
 
   const oldPartner =
     previousPartner.get(socketId);
 
-  /*
-    First try:
-    Recent pair aur previous partner
-    ko avoid karo.
-  */
-
   for (
     const candidate of waitingQueue
   ) {
-
-    if (
-      candidate === socketId
-    ) {
+    if (candidate === socketId) {
       continue;
     }
 
-    if (
-      !onlineUsers.has(candidate)
-    ) {
+    if (!onlineUsers.has(candidate)) {
       continue;
     }
 
-    if (
-      partners.has(candidate)
-    ) {
+    if (partners.has(candidate)) {
       continue;
     }
 
-    if (
-      candidate === oldPartner
-    ) {
+    if (candidate === oldPartner) {
       continue;
     }
 
@@ -285,49 +262,30 @@ function findBestStranger(socketId) {
         candidate
       )
     ) {
-
       return candidate;
-
     }
-
   }
-
-  /*
-    Fallback:
-    Agar koi perfect stranger nahi mila
-    to available user ko match karo.
-  */
 
   for (
     const candidate of waitingQueue
   ) {
-
-    if (
-      candidate === socketId
-    ) {
+    if (candidate === socketId) {
       continue;
     }
 
-    if (
-      !onlineUsers.has(candidate)
-    ) {
+    if (!onlineUsers.has(candidate)) {
       continue;
     }
 
-    if (
-      partners.has(candidate)
-    ) {
+    if (partners.has(candidate)) {
       continue;
     }
 
-    if (
-      candidate === oldPartner
-    ) {
+    if (candidate === oldPartner) {
       continue;
     }
 
     return candidate;
-
   }
 
   return null;
@@ -337,14 +295,8 @@ function findBestStranger(socketId) {
    MATCH USERS
 ========================================= */
 
-function matchUsers(
-  userA,
-  userB
-) {
-
-  if (
-    userA === userB
-  ) {
+function matchUsers(userA, userB) {
+  if (userA === userB) {
     return false;
   }
 
@@ -368,34 +320,13 @@ function matchUsers(
   nextUsers.delete(userA);
   nextUsers.delete(userB);
 
-  partners.set(
-    userA,
-    userB
-  );
+  partners.set(userA, userB);
+  partners.set(userB, userA);
 
-  partners.set(
-    userB,
-    userA
-  );
+  previousPartner.set(userA, userB);
+  previousPartner.set(userB, userA);
 
-  previousPartner.set(
-    userA,
-    userB
-  );
-
-  previousPartner.set(
-    userB,
-    userA
-  );
-
-  rememberPair(
-    userA,
-    userB
-  );
-
-  /*
-    User A
-  */
+  rememberPair(userA, userB);
 
   io.to(userA).emit(
     "matched",
@@ -404,10 +335,6 @@ function matchUsers(
       initiator: true
     }
   );
-
-  /*
-    User B
-  */
 
   io.to(userB).emit(
     "matched",
@@ -432,16 +359,11 @@ function matchUsers(
 ========================================= */
 
 function tryMatch(socketId) {
-
-  if (
-    !onlineUsers.has(socketId)
-  ) {
+  if (!onlineUsers.has(socketId)) {
     return false;
   }
 
-  if (
-    partners.has(socketId)
-  ) {
+  if (partners.has(socketId)) {
     return false;
   }
 
@@ -451,12 +373,10 @@ function tryMatch(socketId) {
     findBestStranger(socketId);
 
   if (stranger) {
-
     return matchUsers(
       socketId,
       stranger
     );
-
   }
 
   addToQueue(socketId);
@@ -473,7 +393,6 @@ function tryMatch(socketId) {
 ========================================= */
 
 function broadcastOnlineCount() {
-
   const count =
     onlineUsers.size;
 
@@ -488,7 +407,6 @@ function broadcastOnlineCount() {
     "Online users:",
     count
   );
-
 }
 
 /* =========================================
@@ -507,17 +425,9 @@ io.on(
       socketId
     );
 
-    /*
-      Add user to online list.
-    */
-
     onlineUsers.add(
       socketId
     );
-
-    /*
-      Send current count to this user.
-    */
 
     socket.emit(
       "online-count",
@@ -527,12 +437,7 @@ io.on(
       }
     );
 
-    /*
-      Broadcast updated count.
-    */
-
     broadcastOnlineCount();
-
 
     /* =====================================
        FIND PARTNER
@@ -561,10 +466,8 @@ io.on(
         tryMatch(
           socketId
         );
-
       }
     );
-
 
     /* =====================================
        WEBRTC SIGNAL
@@ -587,21 +490,14 @@ io.on(
           return;
         }
 
-        /*
-          Only forward signal to
-          current partner.
-        */
-
         io.to(
           partnerId
         ).emit(
           "signal",
           data
         );
-
       }
     );
-
 
     /* =====================================
        CHAT MESSAGE
@@ -629,20 +525,14 @@ io.on(
             data.message || ""
           ).trim();
 
-        /*
-          Maximum 2000 characters.
-        */
-
         if (
           message.length > 2000
         ) {
-
           message =
             message.substring(
               0,
               2000
             );
-
         }
 
         if (!message) {
@@ -657,10 +547,8 @@ io.on(
             message
           }
         );
-
       }
     );
-
 
     /* =====================================
        REPORT USER
@@ -687,13 +575,11 @@ io.on(
         if (
           reason.length > 1000
         ) {
-
           reason =
             reason.substring(
               0,
               1000
             );
-
         }
 
         console.log(
@@ -705,19 +591,13 @@ io.on(
           }
         );
 
-        /*
-          Reporter ko confirmation.
-        */
-
         io.to(
           socketId
         ).emit(
           "user-reported"
         );
-
       }
     );
-
 
     /* =====================================
        NEXT
@@ -732,16 +612,8 @@ io.on(
             socketId
           );
 
-        /*
-          Agar current partner hai
-        */
-
         if (oldPartner) {
 
-          /*
-            Remove current pair.
-          */
-
           partners.delete(
             socketId
           );
@@ -757,10 +629,6 @@ io.on(
           nextUsers.add(
             oldPartner
           );
-
-          /*
-            Old partner ko notify.
-          */
 
           io.to(
             oldPartner
@@ -768,10 +636,6 @@ io.on(
             "partner-left"
           );
 
-          /*
-            Dono ko queue se hatao.
-          */
-
           removeFromQueue(
             socketId
           );
@@ -779,13 +643,7 @@ io.on(
           removeFromQueue(
             oldPartner
           );
-
         }
-
-        /*
-          Current user ko immediately
-          new search me bhejo.
-        */
 
         setTimeout(
           () => {
@@ -817,12 +675,6 @@ io.on(
           },
           NEXT_SEARCH_TIME
         );
-
-
-        /*
-          Old partner ko bhi new
-          stranger search karne do.
-        */
 
         if (oldPartner) {
 
@@ -856,12 +708,9 @@ io.on(
             },
             NEXT_SEARCH_TIME
           );
-
         }
-
       }
     );
-
 
     /* =====================================
        STOP
@@ -876,10 +725,6 @@ io.on(
             socketId
           );
 
-        /*
-          Current user ka pair remove.
-        */
-
         if (partnerId) {
 
           partners.delete(
@@ -889,10 +734,6 @@ io.on(
           partners.delete(
             partnerId
           );
-
-          /*
-            Partner ko waiting state.
-          */
 
           if (
             onlineUsers.has(
@@ -905,14 +746,8 @@ io.on(
             ).emit(
               "partner-left"
             );
-
           }
-
         }
-
-        /*
-          User ko queue se remove.
-        */
 
         removeFromQueue(
           socketId
@@ -922,17 +757,11 @@ io.on(
           socketId
         );
 
-        /*
-          User ko confirmation.
-        */
-
         socket.emit(
           "stopped"
         );
-
       }
     );
-
 
     /* =====================================
        DISCONNECT
@@ -947,35 +776,17 @@ io.on(
           socketId
         );
 
-        /*
-          Online list se remove.
-        */
-
         onlineUsers.delete(
           socketId
         );
-
-        /*
-          Queue se remove.
-        */
 
         removeFromQueue(
           socketId
         );
 
-        /*
-          Next list se remove.
-        */
-
         nextUsers.delete(
           socketId
         );
-
-
-        /*
-          Agar kisi partner ke saath
-          connected tha.
-        */
 
         const partnerId =
           partners.get(
@@ -984,10 +795,6 @@ io.on(
 
         if (partnerId) {
 
-          /*
-            Pair remove.
-          */
-
           partners.delete(
             socketId
           );
@@ -995,10 +802,6 @@ io.on(
           partners.delete(
             partnerId
           );
-
-          /*
-            Partner ko notify.
-          */
 
           if (
             onlineUsers.has(
@@ -1011,11 +814,6 @@ io.on(
             ).emit(
               "partner-left"
             );
-
-            /*
-              Partner ko queue me
-              daal do.
-            */
 
             setTimeout(
               () => {
@@ -1032,39 +830,23 @@ io.on(
                   tryMatch(
                     partnerId
                   );
-
                 }
 
               },
               1000
             );
-
           }
-
         }
-
-
-        /*
-          Previous partner cleanup.
-        */
 
         previousPartner.delete(
           socketId
         );
 
-
-        /*
-          Online users update.
-        */
-
         broadcastOnlineCount();
-
       }
     );
-
   }
 );
-
 
 /* =========================================
    CLEAN OLD RECENT PAIRS
@@ -1092,15 +874,12 @@ setInterval(
         recentPairs.delete(
           key
         );
-
       }
-
     }
 
   },
   60 * 1000
 );
-
 
 /* =========================================
    CLEAN WAITING QUEUE
@@ -1114,7 +893,6 @@ setInterval(
   },
   10 * 1000
 );
-
 
 /* =========================================
    SERVER START
@@ -1149,3 +927,4 @@ server.listen(
 
   }
 );
+```
