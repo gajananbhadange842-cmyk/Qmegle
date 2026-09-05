@@ -1,136 +1,2303 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
 
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-NQZSNTGTJG"></script>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Qmegle – Free Random Video Chat With Strangers</title>
+
+  <meta name="description"
+        content="Qmegle is a free random video chat website where you can meet and chat with new people online. Start a random video conversation instantly.">
+
+  <meta name="keywords"
+        content="random video chat, free video chat, chat with strangers, Omegle alternative, random chat, video chat online">
+
+  <meta name="robots" content="index, follow">
+
+  <link rel="canonical"
+        href="https://qmegle.onrender.com/">
+
+  <!-- Open Graph -->
+  <meta property="og:title"
+        content="Qmegle – Free Random Video Chat">
+
+  <meta property="og:description"
+        content="Meet new people and chat with strangers using free random video chat on Qmegle.">
+
+  <meta property="og:type"
+        content="website">
+
+  <meta property="og:url"
+        content="https://qmegle.onrender.com/">
+
+  <meta property="og:site_name"
+        content="Qmegle">
+
+  <!-- Twitter -->
+  <meta name="twitter:card"
+        content="summary">
+
+  <meta name="twitter:title"
+        content="Qmegle – Free Random Video Chat">
+
+  <meta name="twitter:description"
+        content="Free random video chat with strangers online.">
+
+  <!-- Google Analytics -->
+  <script async
+    src="https://www.googletagmanager.com/gtag/js?id=G-NQZSNTGTJG"></script>
+
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag("js", new Date());
+
+    gtag("config", "G-NQZSNTGTJG");
+  </script>
+
+  <!-- Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Qmegle",
+    "url": "https://qmegle.onrender.com/",
+    "description": "Free random video chat with strangers online."
+  }
+  </script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    button,
+    input,
+    textarea {
+      font-family: inherit;
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 20px;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .logo {
+      font-size: 30px;
+      font-weight: 700;
+      text-decoration: none;
+      color: #111;
+    }
+
+    .logo-q {
+      color: #1976d2;
+    }
+
+    .logo-megle {
+      color: #f57c00;
+    }
+
+    .online-users-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: #f7f7f7;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 7px 13px;
+      font-size: 13px;
+      color: #444;
+    }
+
+    .online-dot {
+      width: 9px;
+      height: 9px;
+      background: #20a84b;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 0 3px rgba(32,168,75,.12);
+    }
+
+    /* =========================
+       MAIN
+    ========================= */
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 22px 15px 50px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 5px 0 8px;
+      font-size: 30px;
+      color: #222;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #666;
+      font-size: 15px;
+    }
+
+    /* =========================
+       VIDEO AREA
+    ========================= */
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .video-box {
+      background: #111;
+      border: 1px solid #ccc;
+      position: relative;
+      height: 330px;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #111;
+    }
+
+    .video-label {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      background: rgba(0,0,0,.65);
+      color: #fff;
+      padding: 5px 9px;
+      border-radius: 3px;
+      font-size: 12px;
+      z-index: 2;
+    }
+
+    /* =========================
+       STATUS
+    ========================= */
+
+    .status {
+      text-align: center;
+      margin: 12px 0;
+      min-height: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .status.waiting {
+      color: #d97706;
+    }
+
+    .status.connected {
+      color: #188038;
+      font-weight: 600;
+    }
+
+    .status.error {
+      color: #d93025;
+    }
+
+    /* =========================
+       CONTROLS
+    ========================= */
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .btn {
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #222;
+      padding: 9px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: .15s;
+    }
+
+    .btn:hover {
+      background: #f0f0f0;
+    }
+
+    .btn-primary {
+      background: #1976d2;
+      color: white;
+      border-color: #1976d2;
+    }
+
+    .btn-primary:hover {
+      background: #1565c0;
+    }
+
+    .btn-success {
+      background: #188038;
+      color: #fff;
+      border-color: #188038;
+    }
+
+    .btn-danger {
+      background: #d93025;
+      color: #fff;
+      border-color: #d93025;
+    }
+
+    .btn-warning {
+      background: #f57c00;
+      color: #fff;
+      border-color: #f57c00;
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    /* =========================
+       CHAT
+    ========================= */
+
+    .chat-section {
+      margin-top: 15px;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 12px;
+    }
+
+    .chat-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    #messages {
+      height: 160px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      background: #fafafa;
+      padding: 10px;
+    }
+
+    .message {
+      margin-bottom: 8px;
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    .message.you {
+      text-align: right;
+    }
+
+    .message span {
+      display: inline-block;
+      padding: 6px 9px;
+      border-radius: 4px;
+      background: #e9e9e9;
+      max-width: 85%;
+      word-break: break-word;
+    }
+
+    .message.you span {
+      background: #d9ecff;
+    }
+
+    .chat-form {
+      display: flex;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    #messageInput {
+      flex: 1;
+      border: 1px solid #ccc;
+      padding: 9px;
+      outline: none;
+    }
+
+    /* =========================
+       INFO
+    ========================= */
+
+    .info {
+      background: #fff;
+      border: 1px solid #ddd;
+      margin-top: 25px;
+      padding: 25px;
+    }
+
+    .info h2 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+
+    .info h3 {
+      font-size: 18px;
+      margin-top: 25px;
+    }
+
+    .info p,
+    .info li {
+      line-height: 1.7;
+      color: #555;
+      font-size: 15px;
+    }
+
+    /* =========================
+       ARTICLES
+    ========================= */
+
+    .articles {
+      margin-top: 25px;
+    }
+
+    .articles h2 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .article-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .article-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 18px;
+    }
+
+    .article-card h3 {
+      font-size: 17px;
+      margin: 0 0 8px;
+    }
+
+    .article-card p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .article-card a {
+      color: #1976d2;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .article-card a:hover {
+      text-decoration: underline;
+    }
+
+    /* =========================
+       FAQ
+    ========================= */
+
+    .faq {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 25px;
+      margin-top: 25px;
+    }
+
+    .faq h2 {
+      margin-top: 0;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid #eee;
+      padding: 13px 0;
+    }
+
+    .faq-item:last-child {
+      border-bottom: none;
+    }
+
+    .faq-item h3 {
+      font-size: 16px;
+      margin: 0 0 7px;
+    }
+
+    .faq-item p {
+      color: #666;
+      line-height: 1.6;
+      margin: 0;
+      font-size: 14px;
+    }
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    footer {
+      background: #fff;
+      border-top: 1px solid #ddd;
+      padding: 25px 15px;
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+    }
+
+    footer a {
+      color: #555;
+      text-decoration: none;
+      margin: 0 7px;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* =========================
+       REPORT MODAL
+    ========================= */
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #fff;
+      width: 100%;
+      max-width: 420px;
+      padding: 22px;
+      border-radius: 5px;
+    }
+
+    .modal-box h2 {
+      margin-top: 0;
+    }
+
+    .modal-box textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 9px;
+      border: 1px solid #ccc;
+      resize: vertical;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 750px) {
+
+      header {
+        padding: 9px 12px;
+      }
+
+      .header-inner {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .logo {
+        text-align: center;
+        font-size: 28px;
+      }
+
+      .online-users-badge {
+        justify-content: center;
+      }
+
+      main {
+        padding: 15px 10px 35px;
+      }
+
+      .hero h1 {
+        font-size: 25px;
+      }
+
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .video-box {
+        height: 260px;
+      }
+
+      .controls {
+        gap: 6px;
+      }
+
+      .btn {
+        padding: 9px 13px;
+      }
+
+      .article-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .info,
+      .faq {
+        padding: 18px;
+      }
+
+      .chat-form {
+        flex-direction: column;
+      }
+
+      #messageInput {
+        width: 100%;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header>
+
+  <div class="header-inner">
+
+    <a href="/" class="logo">
+      <span class="logo-q">Q</span><span class="logo-megle">megle</span>
+    </a>
+
+    <div class="online-users-badge"
+         aria-live="polite">
+
+      <span class="online-dot"></span>
+
+      <span>
+        <strong id="onlineCount">0</strong>
+        users online
+      </span>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<main>
+
+  <!-- =========================
+       HERO
+  ========================= -->
+
+  <section class="hero">
+
+    <h1>Free Random Video Chat</h1>
+
+    <p>
+      Meet new people and chat with strangers online for free.
+    </p>
+
+  </section>
+
+
+  <!-- =========================
+       VIDEO
+  ========================= -->
+
+  <section class="video-grid">
+
+    <div class="video-box">
+
+      <video
+        id="myVideo"
+        autoplay
+        muted
+        playsinline>
+      </video>
+
+      <div class="video-label">
+        You
+      </div>
+
+    </div>
+
+
+    <div class="video-box">
+
+      <video
+        id="partnerVideo"
+        autoplay
+        playsinline>
+      </video>
+
+      <div class="video-label">
+        Stranger
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       STATUS
+  ========================= -->
+
+  <div
+    id="status"
+    class="status">
+
+    Click Start Chat to find a stranger.
+    
+  </div>
+
+
+  <!-- =========================
+       MAIN CONTROLS
+  ========================= -->
+
+  <div class="controls">
+
+    <button
+      id="startBtn"
+      class="btn btn-primary">
+
+      Start Chat
+
+    </button>
+
+
+    <button
+      id="nextBtn"
+      class="btn btn-success"
+      disabled>
+
+      Next
+
+    </button>
+
+
+    <button
+      id="stopBtn"
+      class="btn btn-danger"
+      disabled>
+
+      Stop
+
+    </button>
+
+
+    <button
+      id="reportBtn"
+      class="btn btn-warning"
+      disabled>
+
+      Report
+
+    </button>
+
+  </div>
+
+
+  <!-- =========================
+       CAMERA CONTROLS
+  ========================= -->
+
+  <div class="controls">
+
+    <button
+      id="cameraBtn"
+      class="btn">
+
+      Camera On
+
+    </button>
+
+
+    <button
+      id="micBtn"
+      class="btn">
+
+      Mic On
+
+    </button>
+
+  </div>
+
+
+  <!-- =========================
+       CHAT
+  ========================= -->
+
+  <section class="chat-section">
+
+    <div class="chat-title">
+      Text Chat
+    </div>
+
+    <div id="messages"></div>
+
+    <form
+      id="chatForm"
+      class="chat-form">
+
+      <input
+        id="messageInput"
+        type="text"
+        maxlength="2000"
+        placeholder="Type a message..."
+        autocomplete="off">
+
+      <button
+        class="btn btn-primary"
+        type="submit">
+
+        Send
+
+      </button>
+
+    </form>
+
+  </section>
+
+
+  <!-- =========================
+       INFORMATION
+  ========================= -->
+
+  <section class="info">
+
+    <h2>
+      What Is Qmegle?
+    </h2>
+
+    <p>
+      Qmegle is a free random video chat platform that allows
+      you to meet new people online. You can start a conversation
+      with a random stranger using video, audio and text chat.
+    </p>
+
+
+    <h3>
+      How Does Random Video Chat Work?
+    </h3>
+
+    <p>
+      Simply click the Start Chat button and Qmegle will look
+      for another available user. Once a stranger is found,
+      the two users can communicate through video and text chat.
+    </p>
+
+
+    <h3>
+      Why Use Qmegle?
+    </h3>
+
+    <ul>
+
+      <li>
+        Free random video chat
+      </li>
+
+      <li>
+        Meet new people online
+      </li>
+
+      <li>
+        Simple and easy interface
+      </li>
+
+      <li>
+        Works on desktop and mobile devices
+      </li>
+
+      <li>
+        Text chat available during conversations
+      </li>
+
+    </ul>
+
+
+    <h3>
+      Stay Safe While Chatting
+    </h3>
+
+    <p>
+      Never share passwords, banking information, private
+      addresses or other sensitive personal information with
+      strangers online. If another user behaves inappropriately,
+      use the Report button and end the conversation.
+    </p>
+
+  </section>
+
+
+  <!-- =========================
+       ARTICLES
+  ========================= -->
+
+  <section class="articles">
+
+    <h2>
+      Random Chat Articles
+    </h2>
+
+
+    <div class="article-grid">
+
+
+      <article class="article-card">
+
+        <h3>
+          What Is Random Video Chat?
+        </h3>
+
+        <p>
+          Learn how random video chat works and how you can
+          meet new people online.
+        </p>
+
+        <a href="/random-video-chat">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <article class="article-card">
+
+        <h3>
+          Chat With Strangers Online
+        </h3>
+
+        <p>
+          Discover how to start conversations with new people
+          using online random chat platforms.
+        </p>
+
+        <a href="/chat-with-strangers">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <article class="article-card">
+
+        <h3>
+          Omegle Alternatives
+        </h3>
+
+        <p>
+          Looking for an Omegle alternative? Learn about
+          modern random chat platforms.
+        </p>
+
+        <a href="/omegle-alternative">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <article class="article-card">
+
+        <h3>
+          Free Video Chat
+        </h3>
+
+        <p>
+          Learn how free online video chat platforms work
+          and how to meet people around the world.
+        </p>
+
+        <a href="/free-video-chat">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <article class="article-card">
+
+        <h3>
+          Random Text Chat
+        </h3>
+
+        <p>
+          Explore text-based random chat and connect with
+          strangers without video.
+        </p>
+
+        <a href="/random-text-chat">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <article class="article-card">
+
+        <h3>
+          Free Random Chat
+        </h3>
+
+        <p>
+          Discover simple ways to meet new people through
+          free random chat services.
+        </p>
+
+        <a href="/free-random-chat">
+          Read Article →
+        </a>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       FAQ
+  ========================= -->
+
+  <section class="faq">
+
+    <h2>
+      Frequently Asked Questions
+    </h2>
+
+
+    <div class="faq-item">
+
+      <h3>
+        Is Qmegle free?
+      </h3>
+
+      <p>
+        Yes. Qmegle is designed as a free random video chat
+        platform.
+      </p>
+
+    </div>
+
+
+    <div class="faq-item">
+
+      <h3>
+        Can I use Qmegle on my phone?
+      </h3>
+
+      <p>
+        Yes. Qmegle's responsive interface is designed to work
+        on smartphones, tablets and computers.
+      </p>
+
+    </div>
+
+
+    <div class="faq-item">
+
+      <h3>
+        Do I need an account?
+      </h3>
+
+      <p>
+        Qmegle can connect users without requiring a traditional
+        account registration.
+      </p>
+
+    </div>
+
+
+    <div class="faq-item">
+
+      <h3>
+        Can I skip a stranger?
+      </h3>
+
+      <p>
+        Yes. Use the Next button to leave the current conversation
+        and search for another stranger.
+      </p>
+
+    </div>
+
+
+    <div class="faq-item">
+
+      <h3>
+        How can I report someone?
+      </h3>
+
+      <p>
+        During a conversation, click the Report button and submit
+        the reason for your report.
+      </p>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer>
+
+  <div>
+    © <span id="year"></span> Qmegle. All rights reserved.
+  </div>
+
+  <div style="margin-top:10px;">
+
+    <a href="/about">
+      About Us
+    </a>
+
+    <a href="/contact">
+      Contact
+    </a>
+
+    <a href="/privacy">
+      Privacy Policy
+    </a>
+
+    <a href="/terms">
+      Terms & Conditions
+    </a>
+
+  </div>
+
+</footer>
+
+
+<!-- =========================
+     REPORT MODAL
+========================= -->
+
+<div
+  id="reportModal"
+  class="modal">
+
+  <div class="modal-box">
+
+    <h2>
+      Report User
+    </h2>
+
+    <p>
+      Tell us why you want to report this user.
+    </p>
+
+    <textarea
+      id="reportReason"
+      maxlength="1000"
+      placeholder="Reason for report..."></textarea>
+
+
+    <div class="modal-buttons">
+
+      <button
+        id="closeReport"
+        class="btn">
+
+        Cancel
+
+      </button>
+
+
+      <button
+        id="submitReport"
+        class="btn btn-danger">
+
+        Submit Report
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
 
 <script>
-window.dataLayer = window.dataLayer || [];
 
-function gtag(){
-    dataLayer.push(arguments);
-}
+  /* =====================================
+     SOCKET CONNECTION
+  ===================================== */
 
-gtag("js", new Date());
-gtag("config", "G-NQZSNTGTJG");
-</script>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Qmegle - Free Random Video Chat & Talk to New People</title>
-
-<meta name="description"
-content="Qmegle is a free random video chat platform where you can meet new people online, talk with strangers, and enjoy random video and text chat.">
-
-<meta name="keywords"
-content="Qmegle, random video chat, free random video chat, random chat, video chat, chat with strangers, meet new people, online video chat, free video chat, stranger chat">
-
-<meta name="author" content="Qmegle">
-
-<meta name="robots"
-content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-
-<meta name="googlebot"
-content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-
-<meta name="theme-color" content="#1677ff">
-
-<link rel="canonical"
-href="https://qmegle.onrender.com/">
-
-<!-- ================================
-     FAVICON
-================================ -->
-
-<link rel="icon"
-type="image/svg+xml"
-href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='white'/%3E%3Ctext x='50' y='72' text-anchor='middle' font-size='70' font-family='Arial' font-weight='bold' fill='%231677ff'%3EQ%3C/text%3E%3C/svg%3E">
-
-<!-- ================================
-     OPEN GRAPH
-================================ -->
-
-<meta property="og:type" content="website">
-
-<meta property="og:title"
-content="Qmegle - Free Random Video Chat">
-
-<meta property="og:description"
-content="Meet new people online with Qmegle. Start a free random video chat or text chat.">
-
-<meta property="og:url"
-content="https://qmegle.onrender.com/">
-
-<meta property="og:site_name"
-content="Qmegle">
-
-<meta property="og:locale"
-content="en_US">
+  const socket = io();
 
 
-<!-- ================================
-     TWITTER
-================================ -->
+  /* =====================================
+     ELEMENTS
+  ===================================== */
 
-<meta name="twitter:card"
-content="summary">
+  const myVideo =
+    document.getElementById("myVideo");
 
-<meta name="twitter:title"
-content="Qmegle - Free Random Video Chat">
+  const partnerVideo =
+    document.getElementById("partnerVideo");
 
-<meta name="twitter:description"
-content="Free random video and text chat. Meet new people online with Qmegle.">
+  const statusEl =
+    document.getElementById("status");
+
+  const startBtn =
+    document.getElementById("startBtn");
+
+  const nextBtn =
+    document.getElementById("nextBtn");
+
+  const stopBtn =
+    document.getElementById("stopBtn");
+
+  const reportBtn =
+    document.getElementById("reportBtn");
+
+  const cameraBtn =
+    document.getElementById("cameraBtn");
+
+  const micBtn =
+    document.getElementById("micBtn");
+
+  const chatForm =
+    document.getElementById("chatForm");
+
+  const messageInput =
+    document.getElementById("messageInput");
+
+  const messages =
+    document.getElementById("messages");
+
+  const onlineCount =
+    document.getElementById("onlineCount");
+
+  const reportModal =
+    document.getElementById("reportModal");
+
+  const reportReason =
+    document.getElementById("reportReason");
+
+  const closeReport =
+    document.getElementById("closeReport");
+
+  const submitReport =
+    document.getElementById("submitReport");
+
+  const year =
+    document.getElementById("year");
 
 
-<!-- ================================
-     STRUCTURED DATA
-================================ -->
+  year.textContent =
+    new Date().getFullYear();
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Qmegle",
-  "url": "https://qmegle.onrender.com/",
-  "description": "Qmegle is a free random video chat platform for meeting new people online through video and text chat.",
-  "applicationCategory": "SocialNetworkingApplication",
-  "operatingSystem": "Web",
-  "browserRequirements": "Requires JavaScript and a modern web browser",
-  "isAccessibleForFree": true,
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
+
+  /* =====================================
+     VARIABLES
+  ===================================== */
+
+  let localStream = null;
+
+  let peerConnection = null;
+
+  let partnerId = null;
+
+  let isSearching = false;
+
+  let isConnected = false;
+
+  let cameraEnabled = true;
+
+  let micEnabled = true;
+
+
+  const ICE_SERVERS = {
+
+    iceServers: [
+
+      {
+        urls: "stun:stun.l.google.com:19302"
+      },
+
+      {
+        urls: "stun:stun1.l.google.com:19302"
+      }
+
+    ]
+
+  };
+
+
+  /* =====================================
+     STATUS
+  ===================================== */
+
+  function setStatus(message, type = "") {
+
+    statusEl.textContent = message;
+
+    statusEl.className =
+      "status " + type;
+
   }
-}
+
+
+  /* =====================================
+     ONLINE USERS
+  ===================================== */
+
+  socket.on("online-count", (data) => {
+
+    if (!onlineCount) return;
+
+    const count =
+      Number(data?.online) || 0;
+
+    onlineCount.textContent =
+      count;
+
+  });
+
+
+  /* =====================================
+     SOCKET EVENTS
+  ===================================== */
+
+  socket.on("connect", () => {
+
+    setStatus(
+      "Connected. Click Start Chat to find a stranger."
+    );
+
+  });
+
+
+  socket.on("disconnect", () => {
+
+    setStatus(
+      "Connection lost. Please refresh the page.",
+      "error"
+    );
+
+  });
+
+
+  socket.on("waiting", () => {
+
+    isSearching = true;
+
+    isConnected = false;
+
+    partnerId = null;
+
+    setStatus(
+      "Looking for a stranger...",
+      "waiting"
+    );
+
+    nextBtn.disabled = true;
+
+    stopBtn.disabled = false;
+
+    reportBtn.disabled = true;
+
+  });
+
+
+  socket.on("matched", async (data) => {
+
+    if (!data) return;
+
+    partnerId =
+      data.partnerId;
+
+    isSearching = false;
+
+    isConnected = true;
+
+    setStatus(
+      "Connected with a stranger.",
+      "connected"
+    );
+
+    nextBtn.disabled = false;
+
+    stopBtn.disabled = false;
+
+    reportBtn.disabled = false;
+
+    clearMessages();
+
+    await createPeerConnection();
+
+    if (data.initiator) {
+
+      try {
+
+        const offer =
+          await peerConnection.createOffer();
+
+        await peerConnection.setLocalDescription(
+          offer
+        );
+
+        socket.emit("signal", {
+
+          type: "offer",
+
+          offer: offer,
+
+          target: partnerId
+
+        });
+
+      } catch (error) {
+
+        console.error(
+          "Offer error:",
+          error
+        );
+
+      }
+
+    }
+
+  });
+
+
+  socket.on("signal", async (data) => {
+
+    if (!data) return;
+
+    try {
+
+      if (!peerConnection) {
+
+        await createPeerConnection();
+
+      }
+
+
+      if (data.type === "offer") {
+
+        await peerConnection.setRemoteDescription(
+          new RTCSessionDescription(data.offer)
+        );
+
+
+        const answer =
+          await peerConnection.createAnswer();
+
+        await peerConnection.setLocalDescription(
+          answer
+        );
+
+
+        socket.emit("signal", {
+
+          type: "answer",
+
+          answer: answer,
+
+          target: partnerId
+
+        });
+
+      }
+
+
+      else if (data.type === "answer") {
+
+        await peerConnection.setRemoteDescription(
+          new RTCSessionDescription(data.answer)
+        );
+
+      }
+
+
+      else if (data.type === "ice-candidate") {
+
+        if (data.candidate) {
+
+          await peerConnection.addIceCandidate(
+            new RTCIceCandidate(data.candidate)
+          );
+
+        }
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Signal error:",
+        error
+      );
+
+    }
+
+  });
+
+
+  socket.on("chat-message", (data) => {
+
+    if (!data) return;
+
+    addMessage(
+      data.message || "",
+      false
+    );
+
+  });
+
+
+  socket.on("partner-left", () => {
+
+    closePeerConnection();
+
+    partnerId = null;
+
+    isConnected = false;
+
+    reportBtn.disabled = true;
+
+    nextBtn.disabled = true;
+
+    setStatus(
+      "The stranger left. Looking for another stranger...",
+      "waiting"
+    );
+
+    clearMessages();
+
+    socket.emit("find-partner");
+
+  });
+
+
+  socket.on("stopped", () => {
+
+    closePeerConnection();
+
+    partnerId = null;
+
+    isConnected = false;
+
+    isSearching = false;
+
+    nextBtn.disabled = true;
+
+    stopBtn.disabled = true;
+
+    reportBtn.disabled = true;
+
+    setStatus(
+      "Chat stopped. Click Start Chat to begin again."
+    );
+
+  });
+
+
+  socket.on("user-reported", () => {
+
+    setStatus(
+      "Report submitted. Thank you."
+    );
+
+  });
+
+
+  /* =====================================
+     START CHAT
+  ===================================== */
+
+  startBtn.addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        await startCamera();
+
+        isSearching = true;
+
+        startBtn.disabled = true;
+
+        stopBtn.disabled = false;
+
+        nextBtn.disabled = true;
+
+        reportBtn.disabled = true;
+
+        clearMessages();
+
+        setStatus(
+          "Looking for a stranger...",
+          "waiting"
+        );
+
+        socket.emit(
+          "find-partner"
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        setStatus(
+          "Camera or microphone permission is required.",
+          "error"
+        );
+
+      }
+
+    }
+  );
+
+
+  /* =====================================
+     START CAMERA
+  ===================================== */
+
+  async function startCamera() {
+
+    if (localStream) {
+
+      return localStream;
+
+    }
+
+
+    localStream =
+      await navigator.mediaDevices.getUserMedia({
+
+        video: true,
+
+        audio: true
+
+      });
+
+
+    myVideo.srcObject =
+      localStream;
+
+
+    cameraEnabled = true;
+
+    micEnabled = true;
+
+    updateMediaButtons();
+
+
+    return localStream;
+
+  }
+
+
+  /* =====================================
+     PEER CONNECTION
+  ===================================== */
+
+  async function createPeerConnection() {
+
+    if (peerConnection) {
+
+      return peerConnection;
+
+    }
+
+
+    peerConnection =
+      new RTCPeerConnection(
+        ICE_SERVERS
+      );
+
+
+    if (localStream) {
+
+      localStream
+        .getTracks()
+        .forEach(track => {
+
+          peerConnection.addTrack(
+            track,
+            localStream
+          );
+
+        });
+
+    }
+
+
+    peerConnection.ontrack =
+      event => {
+
+        if (
+          event.streams &&
+          event.streams[0]
+        ) {
+
+          partnerVideo.srcObject =
+            event.streams[0];
+
+        }
+
+      };
+
+
+    peerConnection.onicecandidate =
+      event => {
+
+        if (
+          event.candidate &&
+          partnerId
+        ) {
+
+          socket.emit(
+            "signal",
+            {
+
+              type: "ice-candidate",
+
+              candidate:
+                event.candidate,
+
+              target:
+                partnerId
+
+            }
+          );
+
+        }
+
+      };
+
+
+    peerConnection.onconnectionstatechange =
+      () => {
+
+        if (!peerConnection)
+          return;
+
+
+        const state =
+          peerConnection.connectionState;
+
+
+        if (
+          state === "connected"
+        ) {
+
+          isConnected = true;
+
+          setStatus(
+            "Connected with a stranger.",
+            "connected"
+          );
+
+        }
+
+
+        if (
+          state === "disconnected" ||
+          state === "failed" ||
+          state === "closed"
+        ) {
+
+          setStatus(
+            "Connection ended.",
+            "error"
+          );
+
+        }
+
+      };
+
+
+    return peerConnection;
+
+  }
+
+
+  /* =====================================
+     CLOSE PEER
+  ===================================== */
+
+  function closePeerConnection() {
+
+    if (peerConnection) {
+
+      try {
+
+        peerConnection.close();
+
+      } catch (error) {
+
+        console.error(error);
+
+      }
+
+    }
+
+
+    peerConnection = null;
+
+
+    partnerVideo.srcObject =
+      null;
+
+  }
+
+
+  /* =====================================
+     NEXT
+  ===================================== */
+
+  nextBtn.addEventListener(
+    "click",
+    () => {
+
+      if (!partnerId) {
+
+        return;
+
+      }
+
+
+      closePeerConnection();
+
+      clearMessages();
+
+      isConnected = false;
+
+      partnerId = null;
+
+      reportBtn.disabled = true;
+
+      nextBtn.disabled = true;
+
+      stopBtn.disabled = false;
+
+      setStatus(
+        "Finding a new stranger...",
+        "waiting"
+      );
+
+
+      socket.emit(
+        "next"
+      );
+
+    }
+  );
+
+
+  /* =====================================
+     STOP
+  ===================================== */
+
+  stopBtn.addEventListener(
+    "click",
+    () => {
+
+      closePeerConnection();
+
+      clearMessages();
+
+      socket.emit(
+        "stop"
+      );
+
+
+      partnerId = null;
+
+      isConnected = false;
+
+      isSearching = false;
+
+      nextBtn.disabled = true;
+
+      stopBtn.disabled = true;
+
+      reportBtn.disabled = true;
+
+      setStatus(
+        "Chat stopped. Click Start Chat to begin again."
+      );
+
+    }
+  );
+
+
+  /* =====================================
+     CAMERA BUTTON
+  ===================================== */
+
+  cameraBtn.addEventListener(
+    "click",
+    () => {
+
+      if (!localStream) {
+
+        return;
+
+      }
+
+
+      const videoTracks =
+        localStream.getVideoTracks();
+
+
+      if (!videoTracks.length) {
+
+        return;
+
+      }
+
+
+      cameraEnabled =
+        !cameraEnabled;
+
+
+      videoTracks.forEach(
+        track => {
+
+          track.enabled =
+            cameraEnabled;
+
+        }
+      );
+
+
+      updateMediaButtons();
+
+    }
+  );
+
+
+  /* =====================================
+     MICROPHONE BUTTON
+  ===================================== */
+
+  micBtn.addEventListener(
+    "click",
+    () => {
+
+      if (!localStream) {
+
+        return;
+
+      }
+
+
+      const audioTracks =
+        localStream.getAudioTracks();
+
+
+      if (!audioTracks.length) {
+
+        return;
+
+      }
+
+
+      micEnabled =
+        !micEnabled;
+
+
+      audioTracks.forEach(
+        track => {
+
+          track.enabled =
+            micEnabled;
+
+        }
+      );
+
+
+      updateMediaButtons();
+
+    }
+  );
+
+
+  /* =====================================
+     UPDATE MEDIA BUTTONS
+  ===================================== */
+
+  function updateMediaButtons() {
+
+    cameraBtn.textContent =
+      cameraEnabled
+        ? "Camera On"
+        : "Camera Off";
+
+
+    micBtn.textContent =
+      micEnabled
+        ? "Mic On"
+        : "Mic Off";
+
+  }
+
+
+  /* =====================================
+     CHAT SEND
+  ===================================== */
+
+  chatForm.addEventListener(
+    "submit",
+    event => {
+
+      event.preventDefault();
+
+
+      const message =
+        messageInput.value.trim();
+
+
+      if (!message) {
+
+        return;
+
+      }
+
+
+      if (!partnerId) {
+
+        return;
+
+      }
+
+
+      socket.emit(
+        "chat-message",
+        {
+
+          message:
+            message.substring(
+              0,
+              2000
+            )
+
+        }
+      );
+
+
+      addMessage(
+        message,
+        true
+      );
+
+
+      messageInput.value =
+        "";
+
+    }
+  );
+
+
+  /* =====================================
+     ADD MESSAGE
+  ===================================== */
+
+  function addMessage(
+    message,
+    isYou
+  ) {
+
+    if (!message) return;
+
+
+    const wrapper =
+      document.createElement(
+        "div"
+      );
+
+
+    wrapper.className =
+      "message " +
+      (isYou ? "you" : "stranger");
+
+
+    const span =
+      document.createElement(
+        "span"
+      );
+
+
+    span.textContent =
+      message;
+
+
+    wrapper.appendChild(
+      span
+    );
+
+
+    messages.appendChild(
+      wrapper
+    );
+
+
+    messages.scrollTop =
+      messages.scrollHeight;
+
+  }
+
+
+  /* =====================================
+     CLEAR CHAT
+  ===================================== */
+
+  function clearMessages() {
+
+    messages.innerHTML =
+      "";
+
+  }
+
+
+  /* =====================================
+     REPORT
+  ===================================== */
+
+  reportBtn.addEventListener(
+    "click",
+    () => {
+
+      if (!partnerId) {
+
+        return;
+
+      }
+
+
+      reportReason.value =
+        "";
+
+
+      reportModal.classList.add(
+        "show"
+      );
+
+    }
+  );
+
+
+  closeReport.addEventListener(
+    "click",
+    () => {
+
+      reportModal.classList.remove(
+        "show"
+      );
+
+    }
+  );
+
+
+  submitReport.addEventListener(
+    "click",
+    () => {
+
+      const reason =
+        reportReason.value.trim();
+
+
+      if (!reason) {
+
+        alert(
+          "Please enter a reason."
+        );
+
+        return;
+
+      }
+
+
+      if (!partnerId) {
+
+        return;
+
+      }
+
+
+      socket.emit(
+        "report-user",
+        {
+
+          reason:
+            reason.substring(
+              0,
+              1000
+            )
+
+        }
+      );
+
+
+      reportModal.classList.remove(
+        "show"
+      );
+
+
+      setStatus(
+        "Report submitted. Thank you."
+      );
+
+    }
+  );
+
+
+  /* =====================================
+     CLOSE MODAL OUTSIDE
+  ===================================== */
+
+  reportModal.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target ===
+        reportModal
+      ) {
+
+        reportModal.classList.remove(
+          "show"
+        );
+
+      }
+
+    }
+  );
+
+
+  /* =====================================
+     KEYBOARD ENTER
+  ===================================== */
+
+  messageInput.addEventListener(
+    "keydown",
+    event => {
+
+      if (
+        event.key === "Enter" &&
+        !event.shiftKey
+      ) {
+
+        event.preventDefault();
+
+        chatForm.requestSubmit();
+
+      }
+
+    }
+  );
+
+
+  /* =====================================
+     PAGE UNLOAD
+  ===================================== */
+
+  window.addEventListener(
+    "beforeunload",
+    () => {
+
+      closePeerConnection();
+
+      if (localStream) {
+
+        localStream
+          .getTracks()
+          .forEach(track => {
+
+            track.stop();
+
+          });
+
+      }
+
+    }
+  );
+
 </script>
 
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Qmegle",
-  "url": "https://qmegle.onrender.com/",
-  "description": "Free random video chat and text chat platform."
-}
-</script>
-
+<!-- =========================
+     FAQ STRUCTURED DATA
+========================= -->
 
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Qmegle",
-  "url": "https://qmegle.onrender.com/"
-}
-</script>
 
-
-<script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -138,2915 +2305,42 @@ content="Free random video and text chat. Meet new people online with Qmegle.">
 
     {
       "@type": "Question",
-      "name": "What is Qmegle?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Qmegle is a free online random video and text chat platform that lets users meet new people."
-      }
-    },
-
-    {
-      "@type": "Question",
       "name": "Is Qmegle free?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Qmegle is designed as a free random video and text chat platform."
+        "text": "Yes. Qmegle is designed as a free random video chat platform."
       }
     },
 
     {
       "@type": "Question",
-      "name": "How does Qmegle random video chat work?",
+      "name": "Can I use Qmegle on my phone?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Start Chat uses your camera and microphone permissions and connects you with another available user through a random matching system."
+        "text": "Yes. Qmegle is designed to work on smartphones, tablets and computers."
       }
     },
 
     {
       "@type": "Question",
-      "name": "Can I use Qmegle on mobile?",
+      "name": "Do I need an account?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Qmegle can be accessed from supported mobile browsers. Camera and microphone permissions may be required for video chat."
+        "text": "Qmegle can connect users without requiring traditional account registration."
       }
     },
 
     {
       "@type": "Question",
-      "name": "Can I find another stranger?",
+      "name": "Can I skip a stranger?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. You can use the Next button to look for another available user."
-      }
-    },
-
-    {
-      "@type": "Question",
-      "name": "What should I do if someone behaves badly?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Use the Report button to report inappropriate behavior and stop the conversation if necessary."
+        "text": "Yes. You can use the Next button to search for another stranger."
       }
     }
 
   ]
 }
-</script>
-
-
-<style>
-
-* {
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f7ff;
-    color: #222;
-    line-height: 1.6;
-}
-
-
-/* ================================
-   HEADER
-================================ */
-
-.header {
-    background: white;
-    padding: 18px;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.logo {
-    font-size: 38px;
-    font-weight: bold;
-}
-
-.q {
-    color: #1677ff;
-}
-
-.megle {
-    color: orange;
-}
-
-.logo-subtitle {
-    margin: 4px 0 0;
-    color: #777;
-    font-size: 14px;
-}
-
-
-/* ================================
-   MAIN
-================================ */
-
-.container {
-    max-width: 1100px;
-    margin: 25px auto;
-    padding: 15px;
-    text-align: center;
-}
-
-h1 {
-    margin-bottom: 8px;
-    font-size: 32px;
-}
-
-h2 {
-    color: #222;
-}
-
-.subtitle {
-    color: #666;
-    margin-bottom: 25px;
-}
-
-
-/* ================================
-   VIDEO
-================================ */
-
-.videos {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.video-box {
-    width: 450px;
-    max-width: 100%;
-    height: 320px;
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
-}
-
-video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background: #000;
-}
-
-.video-title {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 5;
-    color: white;
-    background: rgba(0,0,0,0.65);
-    padding: 7px 12px;
-    border-radius: 7px;
-    font-weight: bold;
-}
-
-
-/* ================================
-   STATUS
-================================ */
-
-.status {
-    margin: 20px 0;
-    font-size: 18px;
-    font-weight: bold;
-    min-height: 25px;
-}
-
-
-/* ================================
-   BUTTONS
-================================ */
-
-button {
-    padding: 13px 20px;
-    margin: 5px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-button:hover {
-    opacity: 0.85;
-}
-
-button:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-.start {
-    background: #1677ff;
-    color: white;
-}
-
-.next {
-    background: orange;
-    color: white;
-}
-
-.stop {
-    background: #e53935;
-    color: white;
-}
-
-.camera {
-    background: #673ab7;
-    color: white;
-}
-
-.mic {
-    background: #00897b;
-    color: white;
-}
-
-.report {
-    background: #d32f2f;
-    color: white;
-}
-
-
-/* ================================
-   CHAT
-================================ */
-
-.chat-container {
-    max-width: 900px;
-    margin: 30px auto;
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.chat-header {
-    background: #1677ff;
-    color: white;
-    padding: 15px;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.messages {
-    height: 220px;
-    overflow-y: auto;
-    padding: 15px;
-    background: #f7f8fc;
-    text-align: left;
-}
-
-.message {
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    max-width: 75%;
-    word-wrap: break-word;
-}
-
-.my-message {
-    margin-left: auto;
-    background: #d9ebff;
-    text-align: right;
-}
-
-.partner-message {
-    background: #e9e9e9;
-}
-
-.system-message {
-    max-width: 100%;
-    text-align: center;
-    background: transparent;
-    color: #777;
-}
-
-.chat-input-area {
-    display: flex;
-    gap: 10px;
-    padding: 12px;
-}
-
-#messageInput {
-    flex: 1;
-    padding: 13px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 16px;
-}
-
-#sendButton {
-    background: #1677ff;
-    color: white;
-}
-
-
-/* ================================
-   REPORT
-================================ */
-
-.report-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-
-.report-box {
-    background: white;
-    width: 90%;
-    max-width: 420px;
-    border-radius: 15px;
-    padding: 25px;
-    text-align: left;
-}
-
-.report-box h2 {
-    margin-top: 0;
-    text-align: center;
-}
-
-.report-option {
-    display: block;
-    padding: 12px;
-    margin: 8px 0;
-    background: #f1f1f1;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.report-option input {
-    margin-right: 10px;
-}
-
-.submit-report {
-    background: #d32f2f;
-    color: white;
-    width: 100%;
-}
-
-.cancel-report {
-    background: #777;
-    color: white;
-    width: 100%;
-}
-
-
-/* ================================
-   SEO CONTENT
-================================ */
-
-.info {
-    background: white;
-    max-width: 900px;
-    margin: 30px auto;
-    padding: 25px;
-    border-radius: 12px;
-    color: #555;
-    line-height: 1.7;
-    text-align: left;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.info h2 {
-    margin-top: 28px;
-    color: #1677ff;
-}
-
-.info h2:first-child {
-    margin-top: 0;
-}
-
-.info p {
-    margin-bottom: 15px;
-}
-
-.info ul {
-    padding-left: 25px;
-}
-
-.info li {
-    margin-bottom: 8px;
-}
-
-
-/* ================================
-   QMEGLE ARTICLES
-================================ */
-
-.articles-gap { height: 45px; }
-
-.qmegle-articles {
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto 30px;
-    padding: 35px 25px 40px;
-    background: #f7f7f7;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-}
-
-.articles-title { text-align: center; margin-bottom: 30px; }
-.articles-small-title { font-size: 11px; font-weight: bold; letter-spacing: 2px; color: #777; margin-bottom: 7px; }
-.articles-title h2 { margin: 0; font-size: 28px; color: #111; }
-.articles-title p { max-width: 650px; margin: 10px auto 0; color: #666; font-size: 14px; line-height: 1.6; }
-
-.articles-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-
-.q-article {
-    display: flex;
-    gap: 15px;
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 20px;
-    border-radius: 8px;
-    transition: .2s ease;
-    text-align: left;
-}
-
-.q-article:hover { border-color: #aaa; box-shadow: 0 4px 12px rgba(0,0,0,.06); }
-.article-icon { width: 48px; height: 48px; min-width: 48px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 6px; font-size: 22px; }
-.article-content h3 { margin: 0 0 7px; font-size: 17px; color: #111; }
-.article-content p { margin: 0 0 10px; color: #666; font-size: 13px; line-height: 1.55; }
-.article-content a { color: #111; font-size: 13px; font-weight: bold; text-decoration: none; }
-.article-content a:hover { text-decoration: underline; }
-
-/* ================================
-   FAQ
-================================ */
-
-.faq {
-    max-width: 900px;
-    margin: 30px auto;
-    padding: 25px;
-    background: white;
-    border-radius: 12px;
-    text-align: left;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.faq h2 {
-    color: #1677ff;
-    text-align: center;
-}
-
-.faq-item {
-    border-bottom: 1px solid #eee;
-    padding: 17px 0;
-}
-
-.faq-item:last-child {
-    border-bottom: none;
-}
-
-.faq-item h3 {
-    margin: 0 0 8px;
-    font-size: 18px;
-    color: #222;
-}
-
-.faq-item p {
-    margin: 0;
-    color: #666;
-}
-
-
-/* ================================
-   FOOTER
-================================ */
-
-.footer {
-    margin-top: 40px;
-    padding: 25px;
-    background: #222;
-    color: white;
-    text-align: center;
-}
-
-.footer a {
-    color: white;
-    text-decoration: none;
-    margin: 0 8px;
-}
-
-.footer a:hover {
-    text-decoration: underline;
-}
-
-
-/* ================================
-   MOBILE
-================================ */
-
-@media (max-width: 600px) {
-
-    .logo {
-        font-size: 30px;
-    }
-
-    h1 {
-        font-size: 27px;
-    }
-
-    .video-box {
-        height: 250px;
-    }
-
-    .chat-input-area {
-        flex-direction: column;
-    }
-
-    #sendButton {
-        width: 100%;
-    }
-
-    button {
-        width: 90%;
-        max-width: 320px;
-    }
-
-    .info,
-    .faq {
-        padding: 20px;
-    }
-
-    .qmegle-articles {
-        width: 94%;
-        padding: 30px 15px;
-    }
-
-    .articles-title h2 {
-        font-size: 23px;
-    }
-
-    .articles-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .q-article {
-        padding: 16px;
-    }
-
-}
-
-
-/* ==========================================================
-   CLASSIC RANDOM-CHAT THEME
-   Inspired by the simple, compact layout of early random-chat
-   websites. Original implementation; not an exact copy.
-========================================================== */
-
-:root{
-  --classic-blue:#2d8cff;
-  --classic-light:#f4f4f4;
-  --classic-border:#d8d8d8;
-  --classic-text:#333;
-  --classic-muted:#777;
-}
-
-html,body{
-  margin:0;
-  padding:0;
-  background:#f5f5f5;
-  color:var(--classic-text);
-  font-family:Arial,Helvetica,sans-serif;
-}
-
-body{
-  font-size:14px;
-}
-
-/* Simple compact top bar */
-.header{
-  height:auto !important;
-  min-height:58px;
-  padding:0 18px !important;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  background:#fff !important;
-  border-bottom:1px solid #ddd !important;
-  box-shadow:none !important;
-}
-
-.logo{
-  font-size:28px !important;
-  font-weight:700;
-  letter-spacing:-1px !important;
-  text-shadow:none !important;
-}
-
-.logo-subtitle{
-  margin:0 !important;
-  color:#777 !important;
-  font-size:13px !important;
-}
-
-.header:after{display:none!important}
-
-/* Main app */
-.container{
-  width:100%;
-  max-width:1100px;
-  box-sizing:border-box;
-  margin:14px auto 0 !important;
-  padding:0 14px 35px !important;
-}
-
-.container > h1{
-  margin:0 0 5px !important;
-  font-size:22px !important;
-  font-weight:600;
-  letter-spacing:0 !important;
-}
-
-.subtitle{
-  margin:0 auto 14px !important;
-  color:#777 !important;
-  font-size:13px;
-}
-
-/* Video panels */
-.videos{
-  display:flex;
-  gap:8px !important;
-  width:100%;
-}
-
-.video-box{
-  width:50% !important;
-  height:350px !important;
-  max-width:none !important;
-  border-radius:3px !important;
-  border:1px solid #ccc !important;
-  background:#111 !important;
-  box-shadow:none !important;
-  overflow:hidden;
-}
-
-.video-box:before{display:none!important}
-
-.video-title{
-  top:7px !important;
-  left:7px !important;
-  padding:4px 8px !important;
-  border-radius:2px !important;
-  background:rgba(0,0,0,.62) !important;
-  border:0 !important;
-  font-size:12px !important;
-}
-
-/* Status */
-.status{
-  max-width:none !important;
-  margin:8px 0 !important;
-  padding:8px 10px !important;
-  border-radius:3px !important;
-  background:#fff !important;
-  border:1px solid #ddd !important;
-  box-shadow:none !important;
-  color:#555 !important;
-  text-align:left;
-}
-
-/* Compact buttons */
-button{
-  border-radius:3px !important;
-  margin:3px !important;
-  padding:8px 16px !important;
-  font-size:14px;
-  font-weight:600;
-  box-shadow:none !important;
-  transform:none !important;
-}
-
-button:hover:not(:disabled){
-  transform:none !important;
-  box-shadow:none !important;
-  opacity:.9;
-}
-
-.start{
-  background:#2d8cff !important;
-  color:#fff !important;
-}
-
-.next{
-  background:#fff !important;
-  color:#333 !important;
-  border:1px solid #bbb !important;
-}
-
-.stop{
-  background:#fff !important;
-  color:#d33 !important;
-  border:1px solid #bbb !important;
-}
-
-.report,.camera,.mic{
-  background:#fff !important;
-  color:#555 !important;
-  border:1px solid #bbb !important;
-}
-
-/* Text chat */
-.chat-container{
-  width:100%;
-  max-width:none !important;
-  margin:10px 0 0 !important;
-  border:1px solid #d3d3d3 !important;
-  border-radius:3px !important;
-  background:#fff !important;
-  box-shadow:none !important;
-}
-
-.chat-header{
-  padding:9px 12px !important;
-  background:#f1f1f1 !important;
-  color:#333 !important;
-  border-bottom:1px solid #d3d3d3;
-  font-size:14px;
-  font-weight:600;
-}
-
-.messages{
-  min-height:125px !important;
-  max-height:220px !important;
-  padding:10px !important;
-  background:#fff !important;
-}
-
-.chat-input-area{
-  padding:7px !important;
-  border-top:1px solid #ddd !important;
-}
-
-.chat-input-area input{
-  border:1px solid #bbb !important;
-  border-radius:3px !important;
-  padding:8px 10px !important;
-}
-
-.chat-input-area button{
-  background:#2d8cff !important;
-  color:#fff !important;
-  border:0 !important;
-}
-
-/* ==========================================================
-   ARTICLE SECTION
-========================================================== */
-
-.articles-gap{
-  height:38px;
-}
-
-.qmegle-articles{
-  max-width:100%;
-  box-sizing:border-box;
-  margin:0 auto 20px;
-  padding:0;
-  background:#fff;
-  border:1px solid #d6d6d6;
-  border-radius:3px;
-  box-shadow:none;
-}
-
-.articles-title{
-  text-align:left;
-  padding:14px 16px 12px;
-  margin:0;
-  background:#f1f1f1;
-  border-bottom:1px solid #d6d6d6;
-}
-
-.articles-small-title{
-  display:none;
-}
-
-.articles-title h2{
-  margin:0;
-  font-size:19px;
-  font-weight:600;
-  color:#333;
-  letter-spacing:0;
-}
-
-.articles-title p{
-  margin:5px 0 0;
-  max-width:none;
-  color:#777;
-  font-size:13px;
-}
-
-.articles-featured{
-  display:block;
-  margin:14px 16px;
-  padding:14px;
-  background:#fafafa;
-  color:#333;
-  border:1px solid #ddd;
-  border-radius:3px;
-  box-shadow:none;
-}
-
-.featured-icon{
-  display:none;
-}
-
-.featured-label{
-  color:#777;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:1px;
-}
-
-.featured-content h3{
-  margin:4px 0 5px;
-  font-size:17px;
-  color:#222;
-}
-
-.featured-content p{
-  margin:0 0 8px;
-  color:#666;
-  line-height:1.5;
-  font-size:13px;
-}
-
-.featured-content a{
-  color:#2d73c9;
-  font-weight:600;
-  text-decoration:none;
-}
-
-.featured-content a span{
-  display:none;
-}
-
-.articles-grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:0;
-  margin:0 16px 14px;
-  border-top:1px solid #ddd;
-  border-left:1px solid #ddd;
-}
-
-.q-article{
-  display:block;
-  min-height:0;
-  padding:15px;
-  border:0;
-  border-right:1px solid #ddd;
-  border-bottom:1px solid #ddd;
-  border-radius:0;
-  background:#fff;
-  box-shadow:none;
-  transition:none;
-}
-
-.q-article:hover{
-  transform:none;
-  border-color:#ddd;
-  box-shadow:none;
-  background:#fafafa;
-}
-
-.article-icon{
-  display:none;
-}
-
-.article-tag{
-  display:block;
-  margin:0 0 4px;
-  color:#888;
-  font-size:9px;
-  letter-spacing:.8px;
-}
-
-.article-content h3{
-  margin:0 0 5px;
-  font-size:16px;
-  color:#333;
-}
-
-.article-content p{
-  margin:0 0 7px;
-  color:#666;
-  font-size:13px;
-  line-height:1.5;
-}
-
-.article-content a{
-  color:#2d73c9;
-  font-size:13px;
-  font-weight:600;
-  text-decoration:none;
-}
-
-.articles-bottom{
-  justify-content:flex-start;
-  margin:0;
-  padding:11px 16px;
-  border-top:1px solid #ddd;
-  color:#777;
-  font-size:12px;
-  text-align:left;
-}
-
-.articles-bottom strong{
-  color:#555;
-}
-
-/* Existing lower information sections */
-.info,.faq{
-  background:#fff !important;
-  border:1px solid #d6d6d6 !important;
-  border-radius:3px !important;
-  box-shadow:none !important;
-}
-
-/* Desktop/mobile classic behavior */
-@media(max-width:700px){
-  .header{
-    min-height:54px;
-    padding:0 12px !important;
-  }
-
-  .logo{
-    font-size:25px !important;
-  }
-
-  .logo-subtitle{
-    display:none;
-  }
-
-  .container{
-    margin-top:10px !important;
-    padding:0 8px 25px !important;
-  }
-
-  .container > h1{
-    font-size:19px !important;
-  }
-
-  .videos{
-    display:block;
-  }
-
-  .video-box{
-    width:100% !important;
-    height:245px !important;
-    margin-bottom:7px;
-  }
-
-  button{
-    padding:8px 12px !important;
-    margin:2px !important;
-  }
-
-  .articles-gap{
-    height:28px;
-  }
-
-  .articles-title{
-    padding:12px;
-  }
-
-  .articles-title h2{
-    font-size:18px;
-  }
-
-  .articles-featured{
-    margin:10px 12px;
-  }
-
-  .articles-grid{
-    grid-template-columns:1fr;
-    margin:0 12px 10px;
-  }
-
-  .q-article{
-    padding:13px;
-  }
-
-  .articles-bottom{
-    padding:10px 12px;
-  }
-}
-
-</style>
-
-
-<style>
-.online-users-badge{display:flex;align-items:center;gap:7px;width:max-content;margin:6px auto;padding:5px 10px;border:1px solid #d9d9d9;border-radius:4px;background:#f7f7f7;color:#444;font-size:13px;white-space:nowrap}
-.online-dot{width:8px;height:8px;border-radius:50%;background:#31a24c;display:inline-block}
-@media(max-width:600px){.online-users-badge{font-size:12px}}
-</style>
-</head>
-
-
-<body>
-
-
-<!-- ================================
-     HEADER
-================================ -->
-
-<header class="header">
-
-    <div class="logo" aria-label="Qmegle">
-
-        <span class="q">Q</span><span class="megle">megle</span>
-
-    </div>
-
-    <p class="logo-subtitle">
-        Free Random Video Chat
-    </p>
-
-</header>
-
-
-<!-- ================================
-     MAIN
-================================ -->
-
-<main class="container">
-
-
-    <h1>Free Random Video Chat</h1>
-
-    <p class="subtitle">
-        Meet new people online with Qmegle.
-        Start a free random video or text chat.
-    </p>
-
-
-    <!-- ================================
-         VIDEO CHAT
-    ================================= -->
-
-    <section aria-label="Random video chat">
-
-        <div class="videos">
-
-
-            <div class="video-box">
-
-                <div class="video-title">
-                    👤 आप
-                </div>
-
-                <video
-                    id="myVideo"
-                    autoplay
-                    muted
-                    playsinline
-                    aria-label="Your video">
-                </video>
-
-            </div>
-
-
-            <div class="video-box">
-
-                <div class="video-title">
-                    👤 Stranger
-                </div>
-
-                <video
-                    id="partnerVideo"
-                    autoplay
-                    playsinline
-                    aria-label="Stranger video">
-                </video>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================================
-         STATUS
-    ================================= -->
-
-    <div class="status" id="status">
-
-        Start Chat दबाएँ
-
-    </div>
-
-
-    <!-- ================================
-         MAIN BUTTONS
-    ================================= -->
-
-    <div>
-
-        <button
-            class="start"
-            id="startButton"
-            aria-label="Start random video chat">
-
-            🎥 Start Chat
-
-        </button>
-
-
-        <button
-            class="next"
-            id="nextButton"
-            disabled
-            aria-label="Find another stranger">
-
-            ⏭️ Next
-
-        </button>
-
-
-        <button
-            class="stop"
-            id="stopButton"
-            disabled
-            aria-label="Stop video chat">
-
-            🛑 Stop
-
-        </button>
-
-
-        <button
-            class="report"
-            id="reportButton"
-            disabled
-            aria-label="Report user">
-
-            🚨 Report
-
-        </button>
-
-    </div>
-
-
-    <!-- ================================
-         CAMERA / MICROPHONE
-    ================================= -->
-
-    <div>
-
-        <button
-            class="camera"
-            id="cameraButton"
-            disabled>
-
-            📹 Camera ON
-
-        </button>
-
-
-        <button
-            class="mic"
-            id="micButton"
-            disabled>
-
-            🎤 Mic ON
-
-        </button>
-
-    </div>
-
-
-    <!-- ================================
-         TEXT CHAT
-    ================================= -->
-
-    <section
-        class="chat-container"
-        aria-label="Qmegle text chat">
-
-        <div class="chat-header">
-            💬 Qmegle Text Chat
-        </div>
-
-
-        <div
-            class="messages"
-            id="messages">
-
-            <div class="message system-message">
-
-                Start Chat दबाकर किसी stranger से connect करें।
-
-            </div>
-
-        </div>
-
-
-        <div class="chat-input-area">
-
-            <input
-                type="text"
-                id="messageInput"
-                placeholder="Message लिखें..."
-                aria-label="Type your message"
-                disabled>
-
-
-            <button
-                id="sendButton"
-                disabled>
-
-                Send
-
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <!-- =====================================\n         QMEGLE ARTICLES\n    ====================================== -->\n\n    <div class="articles-gap"></div>\n\n    <section class="qmegle-articles" aria-label="Qmegle Articles">\n\n        <div class="articles-title">\n            <div class="articles-small-title">QMEGLE GUIDES</div>\n            <h2>QMEGLE ARTICLES</h2>\n            <p>Random video chat, strangers से chat और online safety के बारे में उपयोगी जानकारी पढ़ें।</p>\n        </div>\n\n        <div class="articles-grid">\n\n            <article class="q-article">\n                <div class="article-icon">📝</div>\n                <div class="article-content">\n                    <h3>What is Random Video Chat?</h3>\n                    <p>Random video chat क्या है, यह कैसे काम करता है और strangers से online video chat कैसे करें।</p>\n                    <a href="/random-video-chat">Learn More →</a>\n                </div>\n            </article>\n\n            <article class="q-article">\n                <div class="article-icon">📝</div>\n                <div class="article-content">\n                    <h3>How to Chat With Strangers</h3>\n                    <p>नए लोगों और strangers से online बात करने के आसान तरीके और useful tips जानें।</p>\n                    <a href="/chat-with-strangers">Learn More →</a>\n                </div>\n            </article>\n\n            <article class="q-article">\n                <div class="article-icon">📝</div>\n                <div class="article-content">\n                    <h3>Omegle Alternatives</h3>\n                    <p>Omegle के alternatives क्या हैं और random chat platform चुनते समय किन बातों का ध्यान रखें।</p>\n                    <a href="/omegle-alternative">Learn More →</a>\n                </div>\n            </article>\n\n            <article class="q-article">\n                <div class="article-icon">📝</div>\n                <div class="article-content">\n                    <h3>Random Video Chat Safety</h3>\n                    <p>Strangers से बात करते समय अपनी privacy और personal information को सुरक्षित रखने के tips।</p>\n                    <a href="/random-video-chat-safety">Learn More →</a>\n                </div>\n            </article>\n\n        </div>\n    </section>\n\n    <!-- =====================================\n         SEO INFORMATION\n    ====================================== -->\n\n    <section class="info">\n        <h2>What is Qmegle?</h2>\n        <p><strong>Qmegle</strong> is a free random video chat and text chat platform that helps you meet new people online. You can start a random conversation with another available user using video, audio and text chat.</p>\n\n        <h2>How Qmegle Works</h2>\n        <p>Using Qmegle is simple. Click the <strong>Start Chat</strong> button and allow camera and microphone permissions when requested by your browser. Qmegle will then look for another available user.</p>\n        <p>When a match is found, you can communicate through real-time video, audio and text chat. If you want to talk to someone else, simply click the <strong>Next</strong> button.</p>\n\n        <h2>Why Use Qmegle?</h2>\n        <p>Qmegle is designed to make random online conversations simple and accessible. The platform provides useful controls for video chat and allows users to move between random conversations.</p>\n        <ul>\n            <li>Free random video chat</li>\n            <li>Random text chat</li>\n            <li>Real-time video and audio communication</li>\n            <li>Next button to find another stranger</li>\n            <li>Camera ON/OFF control</li>\n            <li>Microphone ON/OFF control</li>\n            <li>Report option for inappropriate behavior</li>\n            <li>Mobile-friendly web interface</li>\n        </ul>\n\n        <h2>Random Video Chat With Strangers</h2>\n        <p>Qmegle allows users to discover random conversations online. Every new connection can introduce you to a different person, making each conversation unique.</p>\n        <p>Random video chat can be fun and interesting, but users should always communicate responsibly and respect other people.</p>\n\n        <h2>Free Online Video Chat</h2>\n        <p>Qmegle is designed as a free online random video chat platform. You can access Qmegle through a supported modern web browser and start a conversation without a complicated registration process.</p>\n\n        <h2>Qmegle on Mobile</h2>\n        <p>Qmegle can be accessed from supported mobile browsers. For video chat, your browser may ask for permission to use your device camera and microphone.</p>\n\n        <h2>Safety Tips for Random Chat</h2>\n        <p>When chatting with strangers online, protect your personal information and use the platform responsibly.</p>\n        <ul>\n            <li>Never share passwords or OTPs.</li>\n            <li>Never share banking or payment information.</li>\n            <li>Do not share private documents.</li>\n            <li>Avoid sharing your home address.</li>\n            <li>Stop the conversation if you feel uncomfortable.</li>\n            <li>Report inappropriate behavior.</li>\n        </ul>\n\n        <h2>Responsible Use of Qmegle</h2>\n        <p>Qmegle is intended for responsible online communication. Users should respect other people and should not use the platform for harassment, abuse, scams, threats, illegal activities or other harmful behavior.</p>\n    </section>\n    </section>
-
-
-    <!-- =====================================
-         FAQ
-    ====================================== -->
-
-    <section class="faq">
-
-        <h2>Frequently Asked Questions</h2>
-
-
-        <div class="faq-item">
-
-            <h3>What is Qmegle?</h3>
-
-            <p>
-                Qmegle is a free random video and text chat platform
-                where users can meet new people online.
-            </p>
-
-        </div>
-
-
-        <div class="faq-item">
-
-            <h3>Is Qmegle free?</h3>
-
-            <p>
-                Yes. Qmegle is designed as a free random video and
-                text chat platform.
-            </p>
-
-        </div>
-
-
-        <div class="faq-item">
-
-            <h3>How does Qmegle random video chat work?</h3>
-
-            <p>
-                Click Start Chat, allow the required camera and
-                microphone permissions, and Qmegle will try to find
-                another available user through its random matching
-                system.
-            </p>
-
-        </div>
-
-
-        <div class="faq-item">
-
-            <h3>Can I use Qmegle on a mobile phone?</h3>
-
-            <p>
-                Yes. Qmegle can be accessed through supported mobile
-                browsers. Camera and microphone permissions may be
-                required for video chat.
-            </p>
-
-        </div>
-
-
-        <div class="faq-item">
-
-            <h3>Can I find another stranger?</h3>
-
-            <p>
-                Yes. Click the Next button to leave the current
-                conversation and look for another available user.
-            </p>
-
-        </div>
-
-
-        <div class="faq-item">
-
-            <h3>Can I turn my camera or microphone off?</h3>
-
-            <p>
-                Yes. Qmegle provides Camera and Mic controls that
-                allow you to turn your video or microphone on or off
-                during a chat.
-            </p>
-
-        </div>
-
-
-        <div class="faq-item">
-
-            <h3>What should I do if someone behaves badly?</h3>
-
-            <p>
-                Use the Report button to report inappropriate
-                behavior. You can also stop the conversation and
-                leave the chat.
-            </p>
-
-        </div>
-
-    </section>
-
-
-</main>
-
-
-<!-- ================================
-     REPORT POPUP
-================================ -->
-
-<div
-    class="report-overlay"
-    id="reportOverlay">
-
-    <div class="report-box">
-
-        <h2>🚨 Report User</h2>
-
-        <p>
-            Report करने का कारण चुनें:
-        </p>
-
-
-        <label class="report-option">
-
-            <input
-                type="radio"
-                name="reportReason"
-                value="Sexual / Adult Content">
-
-            🔞 Sexual / Adult Content
-
-        </label>
-
-
-        <label class="report-option">
-
-            <input
-                type="radio"
-                name="reportReason"
-                value="Harassment">
-
-            😡 Harassment
-
-        </label>
-
-
-        <label class="report-option">
-
-            <input
-                type="radio"
-                name="reportReason"
-                value="Abuse">
-
-            🤬 Abuse
-
-        </label>
-
-
-        <label class="report-option">
-
-            <input
-                type="radio"
-                name="reportReason"
-                value="Spam">
-
-            🚫 Spam
-
-        </label>
-
-
-        <label class="report-option">
-
-            <input
-                type="radio"
-                name="reportReason"
-                value="Other">
-
-            ⚠️ Other
-
-        </label>
-
-
-        <button
-            class="submit-report"
-            id="submitReport">
-
-            🚨 Submit Report
-
-        </button>
-
-
-        <button
-            class="cancel-report"
-            id="cancelReport">
-
-            Cancel
-
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- ================================
-     FOOTER
-================================ -->
-
-<footer class="footer">
-
-    <div>
-        © 2026 Qmegle. All Rights Reserved.
-    </div>
-
-    <div style="margin-top:10px;">
-
-        <a href="/about.html">
-            About
-        </a>
-
-        <a href="/contact.html">
-            Contact
-        </a>
-
-        <a href="/privacy.html">
-            Privacy
-        </a>
-
-        <a href="/terms.html">
-            Terms
-        </a>
-
-    </div>
-
-</footer>
-
-
-<!-- ================================
-     SOCKET.IO
-================================ -->
-
-<script src="/socket.io/socket.io.js"></script>
-
-<script>
-
-const socket = io();
-
-
-/* =========================================
-   ELEMENTS
-========================================= */
-
-const myVideo =
-    document.getElementById("myVideo");
-
-const partnerVideo =
-    document.getElementById("partnerVideo");
-
-const startButton =
-    document.getElementById("startButton");
-
-const nextButton =
-    document.getElementById("nextButton");
-
-const stopButton =
-    document.getElementById("stopButton");
-
-const reportButton =
-    document.getElementById("reportButton");
-
-const cameraButton =
-    document.getElementById("cameraButton");
-
-const micButton =
-    document.getElementById("micButton");
-
-const status =
-    document.getElementById("status");
-
-const messages =
-    document.getElementById("messages");
-
-const messageInput =
-    document.getElementById("messageInput");
-
-const sendButton =
-    document.getElementById("sendButton");
-
-const reportOverlay =
-    document.getElementById("reportOverlay");
-
-const submitReport =
-    document.getElementById("submitReport");
-
-const cancelReport =
-    document.getElementById("cancelReport");
-
-
-/* =========================================
-   VARIABLES
-========================================= */
-
-let localStream = null;
-
-let peerConnection = null;
-
-let partnerId = null;
-
-let cameraOn = true;
-
-let micOn = true;
-
-let started = false;
-
-let remoteDescriptionSet = false;
-
-let pendingIceCandidates = [];
-
-
-/* =========================================
-   WEBRTC CONFIG
-========================================= */
-
-const configuration = {
-
-    iceServers: [
-
-        {
-            urls:
-                "stun:stun.l.google.com:19302"
-        },
-
-        {
-            urls:
-                "stun:stun1.l.google.com:19302"
-        },
-
-        {
-            urls:
-                "stun:stun2.l.google.com:19302"
-        },
-
-        {
-            urls:
-                "stun:stun3.l.google.com:19302"
-        }
-
-    ]
-
-};
-
-
-/* =========================================
-   START CAMERA
-========================================= */
-
-async function startCamera() {
-
-    if (
-        !navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia
-    ) {
-
-        status.innerText =
-            "❌ इस browser में Camera/Microphone उपलब्ध नहीं है।";
-
-        return false;
-
-    }
-
-
-    try {
-
-        if (localStream) {
-
-            localStream
-                .getTracks()
-                .forEach(track => track.stop());
-
-        }
-
-
-        localStream =
-            await navigator.mediaDevices.getUserMedia({
-
-                video: {
-                    facingMode: "user"
-                },
-
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true
-                }
-
-            });
-
-
-        myVideo.srcObject =
-            localStream;
-
-
-        cameraOn = true;
-
-        micOn = true;
-
-
-        updateControls();
-
-
-        return true;
-
-    }
-
-    catch(error) {
-
-        console.error(
-            "Camera/Microphone error:",
-            error
-        );
-
-
-        status.innerText =
-            "❌ Camera और Microphone की permission दें।";
-
-
-        return false;
-
-    }
-
-}
-
-
-/* =========================================
-   CREATE PEER CONNECTION
-========================================= */
-
-function createPeerConnection() {
-
-    if(peerConnection) {
-
-        peerConnection.close();
-
-    }
-
-
-    remoteDescriptionSet = false;
-
-    pendingIceCandidates = [];
-
-
-    peerConnection =
-        new RTCPeerConnection(
-            configuration
-        );
-
-
-    if(localStream) {
-
-        localStream
-            .getTracks()
-            .forEach(track => {
-
-                peerConnection.addTrack(
-                    track,
-                    localStream
-                );
-
-            });
-
-    }
-
-
-    peerConnection.ontrack =
-        event => {
-
-            if(
-                event.streams &&
-                event.streams[0]
-            ) {
-
-                partnerVideo.srcObject =
-                    event.streams[0];
-
-
-                partnerVideo
-                    .play()
-                    .catch(() => {});
-
-            }
-
-        };
-
-
-    peerConnection.onicecandidate =
-        event => {
-
-            if(
-                event.candidate &&
-                partnerId
-            ) {
-
-                socket.emit(
-                    "signal",
-                    {
-
-                        type:
-                            "candidate",
-
-                        candidate:
-                            event.candidate
-
-                    }
-                );
-
-            }
-
-        };
-
-
-    peerConnection.onconnectionstatechange =
-        () => {
-
-            if(!peerConnection) {
-                return;
-            }
-
-
-            const state =
-                peerConnection.connectionState;
-
-
-            console.log(
-                "WebRTC connection state:",
-                state
-            );
-
-
-            if(state === "connected") {
-
-                status.innerText =
-                    "🟢 Stranger connected! आप बात कर सकते हैं।";
-
-            }
-
-
-            else if(state === "failed") {
-
-                status.innerText =
-                    "⚠️ Video connection failed. Next दबाकर फिर कोशिश करें।";
-
-            }
-
-        };
-
-
-    peerConnection.oniceconnectionstatechange =
-        () => {
-
-            if(!peerConnection) {
-                return;
-            }
-
-
-            console.log(
-                "ICE state:",
-                peerConnection.iceConnectionState
-            );
-
-        };
-
-
-    return peerConnection;
-
-}
-
-
-/* =========================================
-   FLUSH ICE CANDIDATES
-========================================= */
-
-async function flushPendingIceCandidates() {
-
-    if(
-        !peerConnection ||
-        !remoteDescriptionSet
-    ) {
-
-        return;
-
-    }
-
-
-    while(
-        pendingIceCandidates.length
-    ) {
-
-        const candidate =
-            pendingIceCandidates.shift();
-
-
-        try {
-
-            await peerConnection
-                .addIceCandidate(candidate);
-
-        }
-
-        catch(error) {
-
-            console.error(
-                "Queued ICE candidate error:",
-                error
-            );
-
-        }
-
-    }
-
-}
-
-
-/* =========================================
-   UPDATE CAMERA / MIC CONTROLS
-========================================= */
-
-function updateControls() {
-
-    cameraButton.disabled =
-        !localStream;
-
-
-    micButton.disabled =
-        !localStream;
-
-
-    cameraButton.innerText =
-        cameraOn
-        ? "📹 Camera ON"
-        : "📷 Camera OFF";
-
-
-    micButton.innerText =
-        micOn
-        ? "🎤 Mic ON"
-        : "🔇 Mic OFF";
-
-}
-
-
-/* =========================================
-   ENABLE CHAT
-========================================= */
-
-function enableChat() {
-
-    messageInput.disabled =
-        false;
-
-
-    sendButton.disabled =
-        false;
-
-}
-
-
-/* =========================================
-   DISABLE CHAT
-========================================= */
-
-function disableChat() {
-
-    messageInput.disabled =
-        true;
-
-
-    sendButton.disabled =
-        true;
-
-
-    messageInput.value =
-        "";
-
-}
-
-
-/* =========================================
-   RESET PEER CONNECTION
-========================================= */
-
-function resetPeerConnection() {
-
-    if(peerConnection) {
-
-        peerConnection.ontrack =
-            null;
-
-
-        peerConnection.onicecandidate =
-            null;
-
-
-        peerConnection.close();
-
-
-        peerConnection =
-            null;
-
-    }
-
-
-    remoteDescriptionSet =
-        false;
-
-
-    pendingIceCandidates =
-        [];
-
-
-    partnerVideo.srcObject =
-        null;
-
-}
-
-
-/* =========================================
-   RESET CHAT
-========================================= */
-
-function resetChatMessages() {
-
-    messages.innerHTML =
-        '<div class="message system-message">नया chat शुरू हो गया है।</div>';
-
-}
-
-
-/* =========================================
-   START BUTTON
-========================================= */
-
-startButton.onclick =
-async () => {
-
-    if(started) {
-
-        return;
-
-    }
-
-
-    const ok =
-        await startCamera();
-
-
-    if(!ok) {
-
-        return;
-
-    }
-
-
-    started =
-        true;
-
-
-    partnerId =
-        null;
-
-
-    resetPeerConnection();
-
-    resetChatMessages();
-
-    disableChat();
-
-
-    startButton.disabled =
-        true;
-
-
-    nextButton.disabled =
-        true;
-
-
-    stopButton.disabled =
-        false;
-
-
-    reportButton.disabled =
-        true;
-
-
-    status.innerText =
-        "🔎 Stranger खोज रहे हैं...";
-
-
-    socket.emit(
-        "find-partner"
-    );
-
-};
-
-
-/* =========================================
-   WAITING
-========================================= */
-
-socket.on(
-    "waiting",
-    () => {
-
-        if(!started) {
-
-            return;
-
-        }
-
-
-        status.innerText =
-            "⏳ Stranger का इंतज़ार हो रहा है...";
-
-    }
-);
-
-
-/* =========================================
-   MATCHED
-========================================= */
-
-socket.on(
-    "matched",
-    async data => {
-
-        if(
-            !started ||
-            !data
-        ) {
-
-            return;
-
-        }
-
-
-        partnerId =
-            data.partnerId;
-
-
-        const initiator =
-            data.initiator === true;
-
-
-        resetPeerConnection();
-
-
-        createPeerConnection();
-
-
-        nextButton.disabled =
-            false;
-
-
-        stopButton.disabled =
-            false;
-
-
-        reportButton.disabled =
-            false;
-
-
-        enableChat();
-
-
-        status.innerText =
-            "🤝 Stranger मिल गया! Video connection बन रहा है...";
-
-
-        if(initiator) {
-
-            try {
-
-                const offer =
-                    await peerConnection
-                    .createOffer();
-
-
-                await peerConnection
-                    .setLocalDescription(
-                        offer
-                    );
-
-
-                socket.emit(
-                    "signal",
-                    {
-
-                        type:
-                            "offer",
-
-                        offer:
-                            peerConnection
-                            .localDescription
-
-                    }
-                );
-
-            }
-
-            catch(error) {
-
-                console.error(
-                    "Offer error:",
-                    error
-                );
-
-
-                status.innerText =
-                    "❌ Video connection शुरू नहीं हो पाया।";
-
-            }
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   SIGNALING
-========================================= */
-
-socket.on(
-    "signal",
-    async data => {
-
-        if(
-            !started ||
-            !data ||
-            !partnerId
-        ) {
-
-            return;
-
-        }
-
-
-        const signal =
-            data.signal || data;
-
-
-        if(
-            !signal ||
-            !peerConnection
-        ) {
-
-            return;
-
-        }
-
-
-        try {
-
-            /* =========================
-               OFFER
-            ========================= */
-
-            if(
-                signal.type ===
-                "offer"
-            ) {
-
-                await peerConnection
-                    .setRemoteDescription(
-                        new RTCSessionDescription(
-                            signal.offer
-                        )
-                    );
-
-
-                remoteDescriptionSet =
-                    true;
-
-
-                await flushPendingIceCandidates();
-
-
-                const answer =
-                    await peerConnection
-                    .createAnswer();
-
-
-                await peerConnection
-                    .setLocalDescription(
-                        answer
-                    );
-
-
-                socket.emit(
-                    "signal",
-                    {
-
-                        type:
-                            "answer",
-
-                        answer:
-                            peerConnection
-                            .localDescription
-
-                    }
-                );
-
-            }
-
-
-            /* =========================
-               ANSWER
-            ========================= */
-
-            else if(
-                signal.type ===
-                "answer"
-            ) {
-
-                await peerConnection
-                    .setRemoteDescription(
-                        new RTCSessionDescription(
-                            signal.answer
-                        )
-                    );
-
-
-                remoteDescriptionSet =
-                    true;
-
-
-                await flushPendingIceCandidates();
-
-            }
-
-
-            /* =========================
-               ICE CANDIDATE
-            ========================= */
-
-            else if(
-                signal.type ===
-                "candidate" &&
-                signal.candidate
-            ) {
-
-                const candidate =
-                    new RTCIceCandidate(
-                        signal.candidate
-                    );
-
-
-                if(remoteDescriptionSet) {
-
-                    await peerConnection
-                        .addIceCandidate(
-                            candidate
-                        );
-
-                }
-
-                else {
-
-                    pendingIceCandidates
-                        .push(candidate);
-
-                }
-
-            }
-
-        }
-
-        catch(error) {
-
-            console.error(
-                "Signaling error:",
-                error
-            );
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   CAMERA BUTTON
-========================================= */
-
-cameraButton.onclick =
-() => {
-
-    if(!localStream) {
-
-        return;
-
-    }
-
-
-    const track =
-        localStream
-        .getVideoTracks()[0];
-
-
-    if(!track) {
-
-        return;
-
-    }
-
-
-    cameraOn =
-        !cameraOn;
-
-
-    track.enabled =
-        cameraOn;
-
-
-    updateControls();
-
-};
-
-
-/* =========================================
-   MICROPHONE BUTTON
-========================================= */
-
-micButton.onclick =
-() => {
-
-    if(!localStream) {
-
-        return;
-
-    }
-
-
-    const track =
-        localStream
-        .getAudioTracks()[0];
-
-
-    if(!track) {
-
-        return;
-
-    }
-
-
-    micOn =
-        !micOn;
-
-
-    track.enabled =
-        micOn;
-
-
-    updateControls();
-
-};
-
-
-/* =========================================
-   NEXT BUTTON
-========================================= */
-
-nextButton.onclick =
-() => {
-
-    if(!started) {
-
-        return;
-
-    }
-
-
-    resetPeerConnection();
-
-
-    partnerId =
-        null;
-
-
-    resetChatMessages();
-
-
-    disableChat();
-
-
-    nextButton.disabled =
-        true;
-
-
-    reportButton.disabled =
-        true;
-
-
-    stopButton.disabled =
-        false;
-
-
-    status.innerText =
-        "🔎 नया stranger खोज रहे हैं...";
-
-
-    socket.emit(
-        "next"
-    );
-
-
-    setTimeout(
-        () => {
-
-            if(
-                started &&
-                !partnerId
-            ) {
-
-                socket.emit(
-                    "find-partner"
-                );
-
-            }
-
-        },
-        100
-    );
-
-};
-
-
-/* =========================================
-   NEXT READY
-========================================= */
-
-socket.on(
-    "next-ready",
-    () => {
-
-        if(
-            started &&
-            !partnerId
-        ) {
-
-            status.innerText =
-                "🔎 नया stranger खोज रहे हैं...";
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   STOP BUTTON
-========================================= */
-
-stopButton.onclick =
-() => {
-
-    if(!started) {
-
-        return;
-
-    }
-
-
-    socket.emit(
-        "stop"
-    );
-
-
-    resetPeerConnection();
-
-
-    partnerId =
-        null;
-
-
-    started =
-        false;
-
-
-    if(localStream) {
-
-        localStream
-            .getTracks()
-            .forEach(track =>
-                track.stop()
-            );
-
-
-        localStream =
-            null;
-
-    }
-
-
-    myVideo.srcObject =
-        null;
-
-
-    cameraOn =
-        true;
-
-
-    micOn =
-        true;
-
-
-    updateControls();
-
-
-    disableChat();
-
-
-    startButton.disabled =
-        false;
-
-
-    nextButton.disabled =
-        true;
-
-
-    stopButton.disabled =
-        true;
-
-
-    reportButton.disabled =
-        true;
-
-
-    status.innerText =
-        "Start Chat दबाएँ";
-
-
-    resetChatMessages();
-
-};
-
-
-/* =========================================
-   PARTNER DISCONNECTED
-========================================= */
-
-socket.on(
-    "partner-disconnected",
-    () => {
-
-        if(!started) {
-
-            return;
-
-        }
-
-
-        resetPeerConnection();
-
-
-        partnerId =
-            null;
-
-
-        disableChat();
-
-
-        nextButton.disabled =
-            false;
-
-
-        reportButton.disabled =
-            true;
-
-
-        status.innerText =
-            "👋 Stranger चला गया। Next दबाकर नया stranger खोजें।";
-
-    }
-);
-
-
-/* =========================================
-   SEND MESSAGE
-========================================= */
-
-function sendMessage() {
-
-    const message =
-        messageInput.value.trim();
-
-
-    if(
-        !message ||
-        !partnerId
-    ) {
-
-        return;
-
-    }
-
-
-    socket.emit(
-        "chat-message",
-        {
-            message:
-                message
-        }
-    );
-
-
-    addMessage(
-        "आप: " + message,
-        "my-message"
-    );
-
-
-    messageInput.value =
-        "";
-
-}
-
-
-/* =========================================
-   SEND BUTTON
-========================================= */
-
-sendButton.onclick =
-    sendMessage;
-
-
-/* =========================================
-   ENTER TO SEND
-========================================= */
-
-messageInput.addEventListener(
-    "keydown",
-    event => {
-
-        if(
-            event.key ===
-            "Enter"
-        ) {
-
-            event.preventDefault();
-
-            sendMessage();
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   RECEIVE MESSAGE
-========================================= */
-
-socket.on(
-    "chat-message",
-    data => {
-
-        const message =
-            typeof data === "string"
-            ? data
-            : data?.message;
-
-
-        if(message) {
-
-            addMessage(
-                "Stranger: " + message,
-                "partner-message"
-            );
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   ADD MESSAGE
-========================================= */
-
-function addMessage(
-    text,
-    className
-) {
-
-    const div =
-        document.createElement(
-            "div"
-        );
-
-
-    div.className =
-        "message " +
-        className;
-
-
-    div.innerText =
-        text;
-
-
-    messages.appendChild(
-        div
-    );
-
-
-    messages.scrollTop =
-        messages.scrollHeight;
-
-}
-
-
-/* =========================================
-   REPORT OPEN
-========================================= */
-
-reportButton.onclick =
-() => {
-
-    if(partnerId) {
-
-        reportOverlay.style.display =
-            "flex";
-
-    }
-
-};
-
-
-/* =========================================
-   REPORT CANCEL
-========================================= */
-
-cancelReport.onclick =
-() => {
-
-    reportOverlay.style.display =
-        "none";
-
-};
-
-
-/* =========================================
-   REPORT SUBMIT
-========================================= */
-
-submitReport.onclick =
-() => {
-
-    const selected =
-        document.querySelector(
-            'input[name="reportReason"]:checked'
-        );
-
-
-    if(!selected) {
-
-        alert(
-            "कृपया Report का कारण चुनें।"
-        );
-
-        return;
-
-    }
-
-
-    socket.emit(
-        "report-user",
-        {
-            reason:
-                selected.value
-        }
-    );
-
-
-    reportOverlay.style.display =
-        "none";
-
-
-    alert(
-        "🚨 Report भेज दी गई है।"
-    );
-
-
-    if(started) {
-
-        nextButton.click();
-
-    }
-
-};
-
-
-/* =========================================
-   USER REPORTED
-========================================= */
-
-socket.on(
-    "user-reported",
-    data => {
-
-        console.log(
-            "Report received:",
-            data
-        );
-
-    }
-);
-
-
-/* =========================================
-   SOCKET CONNECT
-========================================= */
-
-socket.on(
-    "connect",
-    () => {
-
-        console.log(
-            "Socket connected:",
-            socket.id
-        );
-
-    }
-);
-
-
-/* =========================================
-   SOCKET DISCONNECT
-========================================= */
-
-socket.on(
-    "disconnect",
-    () => {
-
-        console.log(
-            "Socket disconnected"
-        );
-
-
-        status.innerText =
-            "⚠️ Server से connection टूट गया। Page refresh करके फिर कोशिश करें।";
-
-    }
-);
-
-
-/* =========================================
-   INITIAL STATE
-========================================= */
-
-updateControls();
-
-disableChat();
 
 </script>
 
