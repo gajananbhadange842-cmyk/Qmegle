@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="hi">
+<head>
 
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-NQZSNTGTJG"></script>
@@ -12,10 +13,8 @@ function gtag(){
 }
 
 gtag("js", new Date());
-
 gtag("config", "G-NQZSNTGTJG");
 </script>
-<head>
 
 <meta charset="UTF-8">
 
@@ -1276,12 +1275,7 @@ button:disabled {
 
 <script src="/socket.io/socket.io.js"></script>
 
-
 <script>
-
-/* =========================================
-   SOCKET
-========================================= */
 
 const socket = io();
 
@@ -1352,6 +1346,8 @@ let micOn = true;
 
 let started = false;
 
+let remoteDescriptionSet = false;
+
 let pendingIceCandidates = [];
 
 
@@ -1371,6 +1367,16 @@ const configuration = {
         {
             urls:
                 "stun:stun1.l.google.com:19302"
+        },
+
+        {
+            urls:
+                "stun:stun2.l.google.com:19302"
+        },
+
+        {
+            urls:
+                "stun:stun3.l.google.com:19302"
         }
 
     ]
@@ -1384,15 +1390,42 @@ const configuration = {
 
 async function startCamera() {
 
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ) {
+
+        status.innerText =
+            "❌ इस browser में Camera/Microphone उपलब्ध नहीं है।";
+
+        return false;
+
+    }
+
+
     try {
 
+        if (localStream) {
+
+            localStream
+                .getTracks()
+                .forEach(track => track.stop());
+
+        }
+
+
         localStream =
-            await navigator.mediaDevices
-            .getUserMedia({
+            await navigator.mediaDevices.getUserMedia({
 
-                video: true,
+                video: {
+                    facingMode: "user"
+                },
 
-                audio: true
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
 
             });
 
@@ -1416,7 +1449,7 @@ async function startCamera() {
     catch(error) {
 
         console.error(
-            "Camera error:",
+            "Camera/Microphone error:",
             error
         );
 
@@ -1445,6 +1478,11 @@ function createPeerConnection() {
     }
 
 
+    remoteDescriptionSet = false;
+
+    pendingIceCandidates = [];
+
+
     peerConnection =
         new RTCPeerConnection(
             configuration
@@ -1454,15 +1492,15 @@ function createPeerConnection() {
     if(localStream) {
 
         localStream
-        .getTracks()
-        .forEach(track => {
+            .getTracks()
+            .forEach(track => {
 
-            peerConnection.addTrack(
-                track,
-                localStream
-            );
+                peerConnection.addTrack(
+                    track,
+                    localStream
+                );
 
-        });
+            });
 
     }
 
@@ -1478,7 +1516,10 @@ function createPeerConnection() {
                 partnerVideo.srcObject =
                     event.streams[0];
 
-                partnerVideo.play().catch(() => {});
+
+                partnerVideo
+                    .play()
+                    .catch(() => {});
 
             }
 
@@ -1511,67 +1552,225 @@ function createPeerConnection() {
         };
 
 
-    peerConnection.oniceconnectionstatechange = () => {
-        if (!peerConnection) return;
-
-        if (peerConnection.iceConnectionState === "checking") {
-            status.innerText = "🔄 Network connection check हो रहा है...";
-        } else if (peerConnection.iceConnectionState === "connected" || peerConnection.iceConnectionState === "completed") {
-            status.innerText = "🟢 Connected! आप stranger से बात कर सकते हैं।";
-        } else if (peerConnection.iceConnectionState === "failed") {
-            status.innerText = "❌ Mobile network connection failed. TURN server की जरूरत हो सकती है।";
-        }
-    };
-
     peerConnection.onconnectionstatechange =
         () => {
 
             if(!peerConnection) {
-
                 return;
+            }
+
+
+            const state =
+                peerConnection.connectionState;
+
+
+            console.log(
+                "WebRTC connection state:",
+                state
+            );
+
+
+            if(state === "connected") {
+
+                status.innerText =
+                    "🟢 Stranger connected! आप बात कर सकते हैं।";
 
             }
 
 
-            if(
-                peerConnection.connectionState ===
-                "connected"
-            ) {
+            else if(state === "failed") {
 
                 status.innerText =
-                    "🟢 Connected! आप stranger से बात कर सकते हैं।";
-
-            }
-
-
-            if(
-                peerConnection.connectionState ===
-                "connecting"
-            ) {
-
-                status.innerText =
-                    "🔄 Video connection हो रहा है...";
-
-            }
-
-
-            if(
-                peerConnection.connectionState ===
-                "failed"
-            ) {
-
-                status.innerText =
-                    "❌ Video connection failed.";
+                    "⚠️ Video connection failed. Next दबाकर फिर कोशिश करें।";
 
             }
 
         };
 
+
+    peerConnection.oniceconnectionstatechange =
+        () => {
+
+            if(!peerConnection) {
+                return;
+            }
+
+
+            console.log(
+                "ICE state:",
+                peerConnection.iceConnectionState
+            );
+
+        };
+
+
+    return peerConnection;
+
 }
 
 
 /* =========================================
-   START CHAT
+   FLUSH ICE CANDIDATES
+========================================= */
+
+async function flushPendingIceCandidates() {
+
+    if(
+        !peerConnection ||
+        !remoteDescriptionSet
+    ) {
+
+        return;
+
+    }
+
+
+    while(
+        pendingIceCandidates.length
+    ) {
+
+        const candidate =
+            pendingIceCandidates.shift();
+
+
+        try {
+
+            await peerConnection
+                .addIceCandidate(candidate);
+
+        }
+
+        catch(error) {
+
+            console.error(
+                "Queued ICE candidate error:",
+                error
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================
+   UPDATE CAMERA / MIC CONTROLS
+========================================= */
+
+function updateControls() {
+
+    cameraButton.disabled =
+        !localStream;
+
+
+    micButton.disabled =
+        !localStream;
+
+
+    cameraButton.innerText =
+        cameraOn
+        ? "📹 Camera ON"
+        : "📷 Camera OFF";
+
+
+    micButton.innerText =
+        micOn
+        ? "🎤 Mic ON"
+        : "🔇 Mic OFF";
+
+}
+
+
+/* =========================================
+   ENABLE CHAT
+========================================= */
+
+function enableChat() {
+
+    messageInput.disabled =
+        false;
+
+
+    sendButton.disabled =
+        false;
+
+}
+
+
+/* =========================================
+   DISABLE CHAT
+========================================= */
+
+function disableChat() {
+
+    messageInput.disabled =
+        true;
+
+
+    sendButton.disabled =
+        true;
+
+
+    messageInput.value =
+        "";
+
+}
+
+
+/* =========================================
+   RESET PEER CONNECTION
+========================================= */
+
+function resetPeerConnection() {
+
+    if(peerConnection) {
+
+        peerConnection.ontrack =
+            null;
+
+
+        peerConnection.onicecandidate =
+            null;
+
+
+        peerConnection.close();
+
+
+        peerConnection =
+            null;
+
+    }
+
+
+    remoteDescriptionSet =
+        false;
+
+
+    pendingIceCandidates =
+        [];
+
+
+    partnerVideo.srcObject =
+        null;
+
+}
+
+
+/* =========================================
+   RESET CHAT
+========================================= */
+
+function resetChatMessages() {
+
+    messages.innerHTML =
+        '<div class="message system-message">नया chat शुरू हो गया है।</div>';
+
+}
+
+
+/* =========================================
+   START BUTTON
 ========================================= */
 
 startButton.onclick =
@@ -1584,42 +1783,46 @@ async () => {
     }
 
 
-    startButton.disabled =
-        true;
-
-
-    status.innerText =
-        "📷 Camera शुरू हो रहा है...";
-
-
     const ok =
         await startCamera();
 
 
     if(!ok) {
 
-        startButton.disabled =
-            false;
-
         return;
 
     }
 
 
-    started = true;
+    started =
+        true;
+
+
+    partnerId =
+        null;
+
+
+    resetPeerConnection();
+
+    resetChatMessages();
+
+    disableChat();
+
+
+    startButton.disabled =
+        true;
 
 
     nextButton.disabled =
-        false;
+        true;
+
 
     stopButton.disabled =
         false;
 
-    cameraButton.disabled =
-        false;
 
-    micButton.disabled =
-        false;
+    reportButton.disabled =
+        true;
 
 
     status.innerText =
@@ -1641,8 +1844,15 @@ socket.on(
     "waiting",
     () => {
 
+        if(!started) {
+
+            return;
+
+        }
+
+
         status.innerText =
-            "⏳ Stranger का इंतजार हो रहा है...";
+            "⏳ Stranger का इंतज़ार हो रहा है...";
 
     }
 );
@@ -1656,11 +1866,36 @@ socket.on(
     "matched",
     async data => {
 
-        partnerId = data?.partnerId;
+        if(
+            !started ||
+            !data
+        ) {
+
+            return;
+
+        }
 
 
-        status.innerText =
-            "🎉 Stranger मिल गया! Video connect हो रही है...";
+        partnerId =
+            data.partnerId;
+
+
+        const initiator =
+            data.initiator === true;
+
+
+        resetPeerConnection();
+
+
+        createPeerConnection();
+
+
+        nextButton.disabled =
+            false;
+
+
+        stopButton.disabled =
+            false;
 
 
         reportButton.disabled =
@@ -1670,10 +1905,11 @@ socket.on(
         enableChat();
 
 
-        createPeerConnection();
+        status.innerText =
+            "🤝 Stranger मिल गया! Video connection बन रहा है...";
 
 
-        if (data?.initiator === true) {
+        if(initiator) {
 
             try {
 
@@ -1696,7 +1932,8 @@ socket.on(
                             "offer",
 
                         offer:
-                            offer
+                            peerConnection
+                            .localDescription
 
                     }
                 );
@@ -1710,6 +1947,10 @@ socket.on(
                     error
                 );
 
+
+                status.innerText =
+                    "❌ Video connection शुरू नहीं हो पाया।";
+
             }
 
         }
@@ -1719,87 +1960,169 @@ socket.on(
 
 
 /* =========================================
-   WEBRTC SIGNAL
+   SIGNALING
 ========================================= */
 
 socket.on(
     "signal",
     async data => {
+
+        if(
+            !started ||
+            !data ||
+            !partnerId
+        ) {
+
+            return;
+
+        }
+
+
+        const signal =
+            data.signal || data;
+
+
+        if(
+            !signal ||
+            !peerConnection
+        ) {
+
+            return;
+
+        }
+
+
         try {
-            if (!data) return;
 
-            const signal = data.signal || data;
+            /* =========================
+               OFFER
+            ========================= */
 
-            if (signal.type === "offer") {
-                if (!peerConnection) {
-                    createPeerConnection();
-                }
+            if(
+                signal.type ===
+                "offer"
+            ) {
 
-                await peerConnection.setRemoteDescription(
-                    new RTCSessionDescription(signal.offer)
-                );
-
-                for (const candidate of pendingIceCandidates) {
-                    try {
-                        await peerConnection.addIceCandidate(
-                            new RTCIceCandidate(candidate)
-                        );
-                    } catch (error) {
-                        console.error("Queued ICE error:", error);
-                    }
-                }
-                pendingIceCandidates = [];
-
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-
-                socket.emit("signal", {
-                    type: "answer",
-                    answer: answer
-                });
-            }
-            else if (signal.type === "answer") {
-                if (!peerConnection) return;
-
-                await peerConnection.setRemoteDescription(
-                    new RTCSessionDescription(signal.answer)
-                );
-
-                for (const candidate of pendingIceCandidates) {
-                    try {
-                        await peerConnection.addIceCandidate(
-                            new RTCIceCandidate(candidate)
-                        );
-                    } catch (error) {
-                        console.error("Queued ICE error:", error);
-                    }
-                }
-                pendingIceCandidates = [];
-            }
-            else if (signal.type === "candidate") {
-                if (!peerConnection || !peerConnection.remoteDescription) {
-                    pendingIceCandidates.push(signal.candidate);
-                    return;
-                }
-
-                try {
-                    await peerConnection.addIceCandidate(
-                        new RTCIceCandidate(signal.candidate)
+                await peerConnection
+                    .setRemoteDescription(
+                        new RTCSessionDescription(
+                            signal.offer
+                        )
                     );
-                } catch (error) {
-                    console.error("ICE error:", error);
-                }
+
+
+                remoteDescriptionSet =
+                    true;
+
+
+                await flushPendingIceCandidates();
+
+
+                const answer =
+                    await peerConnection
+                    .createAnswer();
+
+
+                await peerConnection
+                    .setLocalDescription(
+                        answer
+                    );
+
+
+                socket.emit(
+                    "signal",
+                    {
+
+                        type:
+                            "answer",
+
+                        answer:
+                            peerConnection
+                            .localDescription
+
+                    }
+                );
+
             }
+
+
+            /* =========================
+               ANSWER
+            ========================= */
+
+            else if(
+                signal.type ===
+                "answer"
+            ) {
+
+                await peerConnection
+                    .setRemoteDescription(
+                        new RTCSessionDescription(
+                            signal.answer
+                        )
+                    );
+
+
+                remoteDescriptionSet =
+                    true;
+
+
+                await flushPendingIceCandidates();
+
+            }
+
+
+            /* =========================
+               ICE CANDIDATE
+            ========================= */
+
+            else if(
+                signal.type ===
+                "candidate" &&
+                signal.candidate
+            ) {
+
+                const candidate =
+                    new RTCIceCandidate(
+                        signal.candidate
+                    );
+
+
+                if(remoteDescriptionSet) {
+
+                    await peerConnection
+                        .addIceCandidate(
+                            candidate
+                        );
+
+                }
+
+                else {
+
+                    pendingIceCandidates
+                        .push(candidate);
+
+                }
+
+            }
+
         }
-        catch (error) {
-            console.error("SIGNAL ERROR:", error);
+
+        catch(error) {
+
+            console.error(
+                "Signaling error:",
+                error
+            );
+
         }
+
     }
 );
 
 
 /* =========================================
-   CAMERA
+   CAMERA BUTTON
 ========================================= */
 
 cameraButton.onclick =
@@ -1838,7 +2161,7 @@ cameraButton.onclick =
 
 
 /* =========================================
-   MICROPHONE
+   MICROPHONE BUTTON
 ========================================= */
 
 micButton.onclick =
@@ -1877,115 +2200,133 @@ micButton.onclick =
 
 
 /* =========================================
-   CONTROLS
-========================================= */
-
-function updateControls() {
-
-    cameraButton.innerText =
-        cameraOn
-        ? "📹 Camera ON"
-        : "📹 Camera OFF";
-
-
-    micButton.innerText =
-        micOn
-        ? "🎤 Mic ON"
-        : "🔇 Mic OFF";
-
-}
-
-
-/* =========================================
-   NEXT
+   NEXT BUTTON
 ========================================= */
 
 nextButton.onclick =
 () => {
 
-    partnerVideo.srcObject =
-        null;
+    if(!started) {
+
+        return;
+
+    }
+
+
+    resetPeerConnection();
 
 
     partnerId =
         null;
 
-    pendingIceCandidates = [];
+
+    resetChatMessages();
+
+
+    disableChat();
+
+
+    nextButton.disabled =
+        true;
 
 
     reportButton.disabled =
         true;
 
 
-    disableChat();
-
-
-    if(peerConnection) {
-
-        peerConnection.onicecandidate =
-            null;
-
-
-        peerConnection.close();
-
-
-        peerConnection =
-            null;
-
-    }
+    stopButton.disabled =
+        false;
 
 
     status.innerText =
-        "🔎 नया Stranger खोज रहे हैं...";
+        "🔎 नया stranger खोज रहे हैं...";
 
 
     socket.emit(
         "next"
     );
 
+
+    setTimeout(
+        () => {
+
+            if(
+                started &&
+                !partnerId
+            ) {
+
+                socket.emit(
+                    "find-partner"
+                );
+
+            }
+
+        },
+        100
+    );
+
 };
 
 
 /* =========================================
-   STOP
+   NEXT READY
+========================================= */
+
+socket.on(
+    "next-ready",
+    () => {
+
+        if(
+            started &&
+            !partnerId
+        ) {
+
+            status.innerText =
+                "🔎 नया stranger खोज रहे हैं...";
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   STOP BUTTON
 ========================================= */
 
 stopButton.onclick =
 () => {
+
+    if(!started) {
+
+        return;
+
+    }
+
 
     socket.emit(
         "stop"
     );
 
 
-    if(peerConnection) {
-
-        peerConnection.close();
-
-
-        peerConnection =
-            null;
-
-    }
-
-
-    partnerVideo.srcObject =
-        null;
+    resetPeerConnection();
 
 
     partnerId =
         null;
 
-    pendingIceCandidates = [];
+
+    started =
+        false;
 
 
     if(localStream) {
 
         localStream
-        .getTracks()
-        .forEach(
-            track => track.stop()
-        );
+            .getTracks()
+            .forEach(track =>
+                track.stop()
+            );
 
 
         localStream =
@@ -1998,35 +2339,41 @@ stopButton.onclick =
         null;
 
 
+    cameraOn =
+        true;
+
+
+    micOn =
+        true;
+
+
+    updateControls();
+
+
     disableChat();
-
-
-    reportButton.disabled =
-        true;
-
-    cameraButton.disabled =
-        true;
-
-    micButton.disabled =
-        true;
-
-    nextButton.disabled =
-        true;
-
-    stopButton.disabled =
-        true;
 
 
     startButton.disabled =
         false;
 
 
-    started =
-        false;
+    nextButton.disabled =
+        true;
+
+
+    stopButton.disabled =
+        true;
+
+
+    reportButton.disabled =
+        true;
 
 
     status.innerText =
-        "🛑 Chat बंद हो गया।";
+        "Start Chat दबाएँ";
+
+
+    resetChatMessages();
 
 };
 
@@ -2039,32 +2386,29 @@ socket.on(
     "partner-disconnected",
     () => {
 
-        partnerVideo.srcObject =
-            null;
+        if(!started) {
+
+            return;
+
+        }
+
+
+        resetPeerConnection();
 
 
         partnerId =
             null;
 
-        pendingIceCandidates = [];
-
-
-        reportButton.disabled =
-            true;
-
 
         disableChat();
 
 
-        if(peerConnection) {
+        nextButton.disabled =
+            false;
 
-            peerConnection.close();
 
-
-            peerConnection =
-                null;
-
-        }
+        reportButton.disabled =
+            true;
 
 
         status.innerText =
@@ -2072,42 +2416,6 @@ socket.on(
 
     }
 );
-
-
-/* =========================================
-   CHAT ENABLE
-========================================= */
-
-function enableChat() {
-
-    messageInput.disabled =
-        false;
-
-
-    sendButton.disabled =
-        false;
-
-}
-
-
-/* =========================================
-   CHAT DISABLE
-========================================= */
-
-function disableChat() {
-
-    messageInput.disabled =
-        true;
-
-
-    sendButton.disabled =
-        true;
-
-
-    messageInput.value =
-        "";
-
-}
 
 
 /* =========================================
@@ -2120,14 +2428,10 @@ function sendMessage() {
         messageInput.value.trim();
 
 
-    if(!message) {
-
-        return;
-
-    }
-
-
-    if(!partnerId) {
+    if(
+        !message ||
+        !partnerId
+    ) {
 
         return;
 
@@ -2136,7 +2440,10 @@ function sendMessage() {
 
     socket.emit(
         "chat-message",
-        { message: message }
+        {
+            message:
+                message
+        }
     );
 
 
@@ -2157,11 +2464,11 @@ function sendMessage() {
 ========================================= */
 
 sendButton.onclick =
-sendMessage;
+    sendMessage;
 
 
 /* =========================================
-   ENTER
+   ENTER TO SEND
 ========================================= */
 
 messageInput.addEventListener(
@@ -2172,6 +2479,8 @@ messageInput.addEventListener(
             event.key ===
             "Enter"
         ) {
+
+            event.preventDefault();
 
             sendMessage();
 
@@ -2189,10 +2498,20 @@ socket.on(
     "chat-message",
     data => {
 
-        addMessage(
-            "Stranger: " + (data?.message || data),
-            "partner-message"
-        );
+        const message =
+            typeof data === "string"
+            ? data
+            : data?.message;
+
+
+        if(message) {
+
+            addMessage(
+                "Stranger: " + message,
+                "partner-message"
+            );
+
+        }
 
     }
 );
@@ -2240,15 +2559,12 @@ function addMessage(
 reportButton.onclick =
 () => {
 
-    if(!partnerId) {
+    if(partnerId) {
 
-        return;
+        reportOverlay.style.display =
+            "flex";
 
     }
-
-
-    reportOverlay.style.display =
-        "flex";
 
 };
 
@@ -2293,10 +2609,8 @@ submitReport.onclick =
     socket.emit(
         "report-user",
         {
-
             reason:
                 selected.value
-
         }
     );
 
@@ -2310,9 +2624,30 @@ submitReport.onclick =
     );
 
 
-    nextButton.click();
+    if(started) {
+
+        nextButton.click();
+
+    }
 
 };
+
+
+/* =========================================
+   USER REPORTED
+========================================= */
+
+socket.on(
+    "user-reported",
+    data => {
+
+        console.log(
+            "Report received:",
+            data
+        );
+
+    }
+);
 
 
 /* =========================================
@@ -2346,13 +2681,21 @@ socket.on(
 
 
         status.innerText =
-            "⚠️ Server से connection टूट गया।";
+            "⚠️ Server से connection टूट गया। Page refresh करके फिर कोशिश करें।";
 
     }
 );
 
+
+/* =========================================
+   INITIAL STATE
+========================================= */
+
+updateControls();
+
+disableChat();
+
 </script>
 
 </body>
-
 </html>
