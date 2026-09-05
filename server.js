@@ -6,15 +6,19 @@ const path = require("path");
 const app = express();
 const server = http.createServer(app);
 
+// =====================================
+// SOCKET.IO
+// =====================================
+
 const io = new Server(server, {
-cors: {
-origin: "*",
-methods: ["GET", "POST"]
-}
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
 
 // =====================================
-// PORT - RENDER + LOCAL
+// PORT
 // =====================================
 
 const PORT = process.env.PORT || 3000;
@@ -30,26 +34,30 @@ app.use(express.static(__dirname));
 // =====================================
 
 app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.get("/health", (req, res) => {
-res.status(200).send("Qmegle server is running");
+  res.status(200).send("Qmegle server is running");
 });
 
-// SEO pages
+// =====================================
+// SEO PAGES
+// =====================================
+
 const seoPages = [
-"random-video-chat",
-"free-video-chat",
-"chat-with-strangers",
-"random-text-chat",
-"omegle-alternative"
+  "random-video-chat",
+  "free-video-chat",
+  "chat-with-strangers",
+  "random-text-chat",
+  "omegle-alternative",
+  "free-random-chat"
 ];
 
 seoPages.forEach((page) => {
-app.get("/" + page, (req, res) => {
-res.sendFile(path.join(__dirname, page + ".html"));
-});
+  app.get("/" + page, (req, res) => {
+    res.sendFile(path.join(__dirname, page + ".html"));
+  });
 });
 
 // =====================================
@@ -59,150 +67,253 @@ res.sendFile(path.join(__dirname, page + ".html"));
 let waitingUser = null;
 
 // =====================================
-// SOCKET.IO
+// PARTNER MAP
+// =====================================
+
+const partners = new Map();
+
+// =====================================
+// SOCKET.IO CONNECTION
 // =====================================
 
 io.on("connection", (socket) => {
-console.log("User connected:", socket.id);
 
-// -----------------------------------
-// FIND RANDOM CHAT PARTNER
-// -----------------------------------
+  console.log("User connected:", socket.id);
 
-socket.on("find-partner", () => {
-console.log("Looking for partner:", socket.id);
+  // ===================================
+  // FIND RANDOM PARTNER
+  // ===================================
 
-```
-// If another user is waiting
-if (waitingUser && waitingUser !== socket.id) {
-  const partner = waitingUser;
+  socket.on("find-partner", () => {
 
-  waitingUser = null;
+    console.log("Looking for partner:", socket.id);
 
-  // Put both users in the same room
-  const room = partner + "-" + socket.id;
+    // Already connected to someone
+    if (partners.has(socket.id)) {
+      console.log("User already has partner:", socket.id);
+      return;
+    }
 
-  socket.join(room);
-  io.sockets.sockets.get(partner)?.join(room);
+    // ---------------------------------
+    // Find waiting user
+    // ---------------------------------
 
-  // Tell both users they are matched
-  io.to(socket.id).emit("matched", {
-    partnerId: partner,
-    room: room,
-    initiator: false
+    if (
+      waitingUser &&
+      waitingUser !== socket.id &&
+      io.sockets.sockets.has(waitingUser)
+    ) {
+
+      const partner = waitingUser;
+
+      // Remove waiting user
+      waitingUser = null;
+
+      // Save partners
+      partners.set(socket.id, partner);
+      partners.set(partner, socket.id);
+
+      console.log("Matched:", partner, "<->", socket.id);
+
+      // ---------------------------------
+      // Tell NEW USER
+      // ---------------------------------
+
+      io.to(socket.id).emit("matched", {
+        partnerId: partner,
+        initiator: false
+      });
+
+      // ---------------------------------
+      // Tell WAITING USER
+      // ---------------------------------
+
+      io.to(partner).emit("matched", {
+        partnerId: socket.id,
+        initiator: true
+      });
+
+    } else {
+
+      // ---------------------------------
+      // Put user in waiting queue
+      // ---------------------------------
+
+      waitingUser = socket.id;
+
+      socket.emit("waiting");
+
+      console.log("User waiting:", socket.id);
+    }
   });
 
-  io.to(partner).emit("matched", {
-    partnerId: socket.id,
-    room: room,
-    initiator: true
+  // ===================================
+  // WEBRTC SIGNALING
+  // ===================================
+
+  socket.on("signal", (data) => {
+
+    if (!data) {
+      console.log("Empty signal from:", socket.id);
+      return;
+    }
+
+    const partnerId = partners.get(socket.id);
+
+    if (!partnerId) {
+      console.log(
+        "No partner found for signal from:",
+        socket.id
+      );
+      return;
+    }
+
+    console.log(
+      "Signal:",
+      data.type,
+      socket.id,
+      "->",
+      partnerId
+    );
+
+    // Send signal to partner
+    io.to(partnerId).emit("signal", {
+      ...data,
+      sender: socket.id
+    });
   });
 
-  console.log("Matched:", partner, "<->", socket.id);
-} else {
-  // No user available
-  waitingUser = socket.id;
+  // ===================================
+  // TEXT CHAT
+  // ===================================
 
-  socket.emit("waiting");
+  socket.on("chat-message", (data) => {
 
-  console.log("User waiting:", socket.id);
-}
-```
+    if (!data) return;
 
-});
+    const partnerId = partners.get(socket.id);
 
-// -----------------------------------
-// WEBRTC SIGNALING
-// -----------------------------------
+    if (!partnerId) return;
 
-socket.on("offer", (data) => {
-if (!data || !data.target) return;
+    io.to(partnerId).emit("chat-message", {
+      message: data.message,
+      sender: socket.id
+    });
+  });
 
-```
-io.to(data.target).emit("offer", {
-  offer: data.offer,
-  sender: socket.id
-});
-```
+  // ===================================
+  // REPORT USER
+  // ===================================
 
-});
+  socket.on("report-user", (data) => {
 
-socket.on("answer", (data) => {
-if (!data || !data.target) return;
+    const partnerId = partners.get(socket.id);
 
-```
-io.to(data.target).emit("answer", {
-  answer: data.answer,
-  sender: socket.id
-});
-```
+    if (!partnerId) return;
 
-});
+    io.to(partnerId).emit("user-reported", {
+      sender: socket.id,
+      reason: data?.reason || "User reported"
+    });
+  });
 
-socket.on("ice-candidate", (data) => {
-if (!data || !data.target) return;
+  // ===================================
+  // NEXT / SKIP
+  // ===================================
 
-```
-io.to(data.target).emit("ice-candidate", {
-  candidate: data.candidate,
-  sender: socket.id
-});
-```
+  socket.on("next", () => {
 
-});
+    console.log("Next requested:", socket.id);
 
-// -----------------------------------
-// TEXT CHAT
-// -----------------------------------
+    // If waiting
+    if (waitingUser === socket.id) {
+      waitingUser = null;
+    }
 
-socket.on("chat-message", (data) => {
-if (!data || !data.target) return;
+    const partnerId = partners.get(socket.id);
 
-```
-io.to(data.target).emit("chat-message", {
-  message: data.message,
-  sender: socket.id
-});
-```
+    // Remove current connection
+    if (partnerId) {
 
-});
+      partners.delete(socket.id);
+      partners.delete(partnerId);
 
-// -----------------------------------
-// NEXT / SKIP PARTNER
-// -----------------------------------
+      // Tell partner
+      io.to(partnerId).emit("partner-disconnected", {
+        partnerId: socket.id
+      });
+    }
 
-socket.on("next", () => {
-console.log("Next requested:", socket.id);
+    // Tell current user
+    socket.emit("next-ready");
 
-```
-if (waitingUser === socket.id) {
-  waitingUser = null;
-}
+    console.log("Next completed:", socket.id);
+  });
 
-socket.emit("next-ready");
-```
+  // ===================================
+  // STOP CHAT
+  // ===================================
 
-});
+  socket.on("stop", () => {
 
-// -----------------------------------
-// DISCONNECT
-// -----------------------------------
+    console.log("Stop requested:", socket.id);
 
-socket.on("disconnect", () => {
-console.log("User disconnected:", socket.id);
+    // Remove from waiting
+    if (waitingUser === socket.id) {
+      waitingUser = null;
+    }
 
-```
-if (waitingUser === socket.id) {
-  waitingUser = null;
-}
+    const partnerId = partners.get(socket.id);
 
-// Notify any connected users who may be talking
-socket.broadcast.emit("partner-disconnected", {
-  partnerId: socket.id
-});
-```
+    if (partnerId) {
 
-});
+      partners.delete(socket.id);
+      partners.delete(partnerId);
+
+      io.to(partnerId).emit("partner-disconnected", {
+        partnerId: socket.id
+      });
+    }
+
+    console.log("Chat stopped:", socket.id);
+  });
+
+  // ===================================
+  // DISCONNECT
+  // ===================================
+
+  socket.on("disconnect", () => {
+
+    console.log("User disconnected:", socket.id);
+
+    // Remove from waiting queue
+    if (waitingUser === socket.id) {
+      waitingUser = null;
+    }
+
+    // Find partner
+    const partnerId = partners.get(socket.id);
+
+    if (partnerId) {
+
+      // Remove both
+      partners.delete(socket.id);
+      partners.delete(partnerId);
+
+      // Notify partner
+      io.to(partnerId).emit("partner-disconnected", {
+        partnerId: socket.id
+      });
+
+      console.log(
+        "Partner disconnected:",
+        socket.id,
+        "->",
+        partnerId
+      );
+    }
+  });
+
 });
 
 // =====================================
@@ -210,8 +321,10 @@ socket.broadcast.emit("partner-disconnected", {
 // =====================================
 
 server.listen(PORT, "0.0.0.0", () => {
-console.log("=====================================");
-console.log("Qmegle Server Started");
-console.log("Port:", PORT);
-console.log("=====================================");
+
+  console.log("=====================================");
+  console.log("QMEGLE SERVER STARTED");
+  console.log("Port:", PORT);
+  console.log("=====================================");
+
 });
