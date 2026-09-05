@@ -48,7 +48,7 @@ app.get("/articles/", (req, res) => {
 });
 
 /* =========================================
-   ARTICLE DETAIL PAGES
+   ARTICLE DETAIL
 ========================================= */
 
 app.get(
@@ -108,19 +108,13 @@ seoPages.forEach((page) => {
 ========================================= */
 
 const waitingQueue = [];
-
 const partners = new Map();
-
 const previousPartner = new Map();
-
 const recentPairs = new Map();
-
 const onlineUsers = new Set();
-
 const nextUsers = new Set();
 
 const PAIR_COOLDOWN = 5 * 60 * 1000;
-
 const NEXT_SEARCH_TIME = 2000;
 
 /* =========================================
@@ -128,9 +122,7 @@ const NEXT_SEARCH_TIME = 2000;
 ========================================= */
 
 function pairKey(a, b) {
-  return [a, b]
-    .sort()
-    .join(":");
+  return [a, b].sort().join(":");
 }
 
 /* =========================================
@@ -139,7 +131,6 @@ function pairKey(a, b) {
 
 function isRecentPair(a, b) {
   const key = pairKey(a, b);
-
   const time = recentPairs.get(key);
 
   if (!time) {
@@ -237,9 +228,7 @@ function findBestStranger(socketId) {
   const oldPartner =
     previousPartner.get(socketId);
 
-  for (
-    const candidate of waitingQueue
-  ) {
+  for (const candidate of waitingQueue) {
     if (candidate === socketId) {
       continue;
     }
@@ -266,9 +255,7 @@ function findBestStranger(socketId) {
     }
   }
 
-  for (
-    const candidate of waitingQueue
-  ) {
+  for (const candidate of waitingQueue) {
     if (candidate === socketId) {
       continue;
     }
@@ -328,21 +315,15 @@ function matchUsers(userA, userB) {
 
   rememberPair(userA, userB);
 
-  io.to(userA).emit(
-    "matched",
-    {
-      partnerId: userB,
-      initiator: true
-    }
-  );
+  io.to(userA).emit("matched", {
+    partnerId: userB,
+    initiator: true
+  });
 
-  io.to(userB).emit(
-    "matched",
-    {
-      partnerId: userA,
-      initiator: false
-    }
-  );
+  io.to(userB).emit("matched", {
+    partnerId: userA,
+    initiator: false
+  });
 
   console.log(
     "MATCHED:",
@@ -381,9 +362,7 @@ function tryMatch(socketId) {
 
   addToQueue(socketId);
 
-  io.to(socketId).emit(
-    "waiting"
-  );
+  io.to(socketId).emit("waiting");
 
   return false;
 }
@@ -396,12 +375,9 @@ function broadcastOnlineCount() {
   const count =
     onlineUsers.size;
 
-  io.emit(
-    "online-count",
-    {
-      online: count
-    }
-  );
+  io.emit("online-count", {
+    online: count
+  });
 
   console.log(
     "Online users:",
@@ -413,244 +389,261 @@ function broadcastOnlineCount() {
    SOCKET CONNECTION
 ========================================= */
 
-io.on(
-  "connection",
-  (socket) => {
+io.on("connection", (socket) => {
+  const socketId =
+    socket.id;
 
-    const socketId =
-      socket.id;
+  console.log(
+    "USER CONNECTED:",
+    socketId
+  );
 
-    console.log(
-      "USER CONNECTED:",
-      socketId
-    );
+  onlineUsers.add(
+    socketId
+  );
 
-    onlineUsers.add(
-      socketId
-    );
+  socket.emit("online-count", {
+    online:
+      onlineUsers.size
+  });
 
-    socket.emit(
-      "online-count",
-      {
-        online:
-          onlineUsers.size
+  broadcastOnlineCount();
+
+  /* =====================================
+     FIND PARTNER
+  ===================================== */
+
+  socket.on(
+    "find-partner",
+    () => {
+      if (
+        !onlineUsers.has(
+          socketId
+        )
+      ) {
+        return;
       }
-    );
 
-    broadcastOnlineCount();
+      if (
+        partners.has(
+          socketId
+        )
+      ) {
+        return;
+      }
 
-    /* =====================================
-       FIND PARTNER
-    ===================================== */
+      tryMatch(
+        socketId
+      );
+    }
+  );
 
-    socket.on(
-      "find-partner",
-      () => {
+  /* =====================================
+     WEBRTC SIGNAL
+  ===================================== */
 
-        if (
-          !onlineUsers.has(
-            socketId
-          )
-        ) {
-          return;
-        }
+  socket.on(
+    "signal",
+    (data) => {
+      if (!data) {
+        return;
+      }
 
-        if (
-          partners.has(
-            socketId
-          )
-        ) {
-          return;
-        }
-
-        tryMatch(
+      const partnerId =
+        partners.get(
           socketId
         );
+
+      if (!partnerId) {
+        return;
       }
-    );
 
-    /* =====================================
-       WEBRTC SIGNAL
-    ===================================== */
+      io.to(
+        partnerId
+      ).emit(
+        "signal",
+        data
+      );
+    }
+  );
 
-    socket.on(
-      "signal",
-      (data) => {
+  /* =====================================
+     CHAT MESSAGE
+  ===================================== */
 
-        if (!data) {
-          return;
-        }
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (!partnerId) {
-          return;
-        }
-
-        io.to(
-          partnerId
-        ).emit(
-          "signal",
-          data
-        );
-      }
-    );
-
-    /* =====================================
-       CHAT MESSAGE
-    ===================================== */
-
-    socket.on(
-      "chat-message",
-      (data) => {
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (!partnerId) {
-          return;
-        }
-
-        if (!data) {
-          return;
-        }
-
-        let message =
-          String(
-            data.message || ""
-          ).trim();
-
-        if (
-          message.length > 2000
-        ) {
-          message =
-            message.substring(
-              0,
-              2000
-            );
-        }
-
-        if (!message) {
-          return;
-        }
-
-        io.to(
-          partnerId
-        ).emit(
-          "chat-message",
-          {
-            message
-          }
-        );
-      }
-    );
-
-    /* =====================================
-       REPORT USER
-    ===================================== */
-
-    socket.on(
-      "report-user",
-      (data) => {
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (!partnerId) {
-          return;
-        }
-
-        let reason =
-          String(
-            data?.reason || ""
-          ).trim();
-
-        if (
-          reason.length > 1000
-        ) {
-          reason =
-            reason.substring(
-              0,
-              1000
-            );
-        }
-
-        console.log(
-          "USER REPORT:",
-          {
-            reporter: socketId,
-            reported: partnerId,
-            reason
-          }
-        );
-
-        io.to(
+  socket.on(
+    "chat-message",
+    (data) => {
+      const partnerId =
+        partners.get(
           socketId
+        );
+
+      if (!partnerId) {
+        return;
+      }
+
+      if (!data) {
+        return;
+      }
+
+      let message =
+        String(
+          data.message || ""
+        ).trim();
+
+      if (
+        message.length > 2000
+      ) {
+        message =
+          message.substring(
+            0,
+            2000
+          );
+      }
+
+      if (!message) {
+        return;
+      }
+
+      io.to(
+        partnerId
+      ).emit(
+        "chat-message",
+        {
+          message
+        }
+      );
+    }
+  );
+
+  /* =====================================
+     REPORT USER
+  ===================================== */
+
+  socket.on(
+    "report-user",
+    (data) => {
+      const partnerId =
+        partners.get(
+          socketId
+        );
+
+      if (!partnerId) {
+        return;
+      }
+
+      let reason =
+        String(
+          data?.reason || ""
+        ).trim();
+
+      if (
+        reason.length > 1000
+      ) {
+        reason =
+          reason.substring(
+            0,
+            1000
+          );
+      }
+
+      console.log(
+        "USER REPORT:",
+        {
+          reporter: socketId,
+          reported: partnerId,
+          reason
+        }
+      );
+
+      io.to(
+        socketId
+      ).emit(
+        "user-reported"
+      );
+    }
+  );
+
+  /* =====================================
+     NEXT
+  ===================================== */
+
+  socket.on(
+    "next",
+    () => {
+      const oldPartner =
+        partners.get(
+          socketId
+        );
+
+      if (oldPartner) {
+        partners.delete(
+          socketId
+        );
+
+        partners.delete(
+          oldPartner
+        );
+
+        nextUsers.add(
+          socketId
+        );
+
+        nextUsers.add(
+          oldPartner
+        );
+
+        io.to(
+          oldPartner
         ).emit(
-          "user-reported"
+          "partner-left"
+        );
+
+        removeFromQueue(
+          socketId
+        );
+
+        removeFromQueue(
+          oldPartner
         );
       }
-    );
 
-    /* =====================================
-       NEXT
-    ===================================== */
+      setTimeout(
+        () => {
+          if (
+            !onlineUsers.has(
+              socketId
+            )
+          ) {
+            return;
+          }
 
-    socket.on(
-      "next",
-      () => {
+          if (
+            partners.has(
+              socketId
+            )
+          ) {
+            return;
+          }
 
-        const oldPartner =
-          partners.get(
+          nextUsers.delete(
             socketId
           );
 
-        if (oldPartner) {
-
-          partners.delete(
+          tryMatch(
             socketId
           );
+        },
+        NEXT_SEARCH_TIME
+      );
 
-          partners.delete(
-            oldPartner
-          );
-
-          nextUsers.add(
-            socketId
-          );
-
-          nextUsers.add(
-            oldPartner
-          );
-
-          io.to(
-            oldPartner
-          ).emit(
-            "partner-left"
-          );
-
-          removeFromQueue(
-            socketId
-          );
-
-          removeFromQueue(
-            oldPartner
-          );
-        }
-
+      if (oldPartner) {
         setTimeout(
           () => {
-
             if (
               !onlineUsers.has(
-                socketId
+                oldPartner
               )
             ) {
               return;
@@ -658,195 +651,151 @@ io.on(
 
             if (
               partners.has(
-                socketId
+                oldPartner
               )
             ) {
               return;
             }
 
             nextUsers.delete(
-              socketId
+              oldPartner
             );
 
             tryMatch(
-              socketId
+              oldPartner
             );
-
           },
           NEXT_SEARCH_TIME
         );
+      }
+    }
+  );
 
-        if (oldPartner) {
+  /* =====================================
+     STOP
+  ===================================== */
+
+  socket.on(
+    "stop",
+    () => {
+      const partnerId =
+        partners.get(
+          socketId
+        );
+
+      if (partnerId) {
+        partners.delete(
+          socketId
+        );
+
+        partners.delete(
+          partnerId
+        );
+
+        if (
+          onlineUsers.has(
+            partnerId
+          )
+        ) {
+          io.to(
+            partnerId
+          ).emit(
+            "partner-left"
+          );
+        }
+      }
+
+      removeFromQueue(
+        socketId
+      );
+
+      nextUsers.delete(
+        socketId
+      );
+
+      socket.emit(
+        "stopped"
+      );
+    }
+  );
+
+  /* =====================================
+     DISCONNECT
+  ===================================== */
+
+  socket.on(
+    "disconnect",
+    () => {
+      console.log(
+        "USER DISCONNECTED:",
+        socketId
+      );
+
+      onlineUsers.delete(
+        socketId
+      );
+
+      removeFromQueue(
+        socketId
+      );
+
+      nextUsers.delete(
+        socketId
+      );
+
+      const partnerId =
+        partners.get(
+          socketId
+        );
+
+      if (partnerId) {
+        partners.delete(
+          socketId
+        );
+
+        partners.delete(
+          partnerId
+        );
+
+        if (
+          onlineUsers.has(
+            partnerId
+          )
+        ) {
+          io.to(
+            partnerId
+          ).emit(
+            "partner-left"
+          );
 
           setTimeout(
             () => {
-
               if (
-                !onlineUsers.has(
-                  oldPartner
+                onlineUsers.has(
+                  partnerId
+                ) &&
+                !partners.has(
+                  partnerId
                 )
               ) {
-                return;
+                tryMatch(
+                  partnerId
+                );
               }
-
-              if (
-                partners.has(
-                  oldPartner
-                )
-              ) {
-                return;
-              }
-
-              nextUsers.delete(
-                oldPartner
-              );
-
-              tryMatch(
-                oldPartner
-              );
-
             },
-            NEXT_SEARCH_TIME
+            1000
           );
         }
       }
-    );
 
-    /* =====================================
-       STOP
-    ===================================== */
+      previousPartner.delete(
+        socketId
+      );
 
-    socket.on(
-      "stop",
-      () => {
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (partnerId) {
-
-          partners.delete(
-            socketId
-          );
-
-          partners.delete(
-            partnerId
-          );
-
-          if (
-            onlineUsers.has(
-              partnerId
-            )
-          ) {
-
-            io.to(
-              partnerId
-            ).emit(
-              "partner-left"
-            );
-          }
-        }
-
-        removeFromQueue(
-          socketId
-        );
-
-        nextUsers.delete(
-          socketId
-        );
-
-        socket.emit(
-          "stopped"
-        );
-      }
-    );
-
-    /* =====================================
-       DISCONNECT
-    ===================================== */
-
-    socket.on(
-      "disconnect",
-      () => {
-
-        console.log(
-          "USER DISCONNECTED:",
-          socketId
-        );
-
-        onlineUsers.delete(
-          socketId
-        );
-
-        removeFromQueue(
-          socketId
-        );
-
-        nextUsers.delete(
-          socketId
-        );
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (partnerId) {
-
-          partners.delete(
-            socketId
-          );
-
-          partners.delete(
-            partnerId
-          );
-
-          if (
-            onlineUsers.has(
-              partnerId
-            )
-          ) {
-
-            io.to(
-              partnerId
-            ).emit(
-              "partner-left"
-            );
-
-            setTimeout(
-              () => {
-
-                if (
-                  onlineUsers.has(
-                    partnerId
-                  ) &&
-                  !partners.has(
-                    partnerId
-                  )
-                ) {
-
-                  tryMatch(
-                    partnerId
-                  );
-                }
-
-              },
-              1000
-            );
-          }
-        }
-
-        previousPartner.delete(
-          socketId
-        );
-
-        broadcastOnlineCount();
-      }
-    );
-  }
-);
+      broadcastOnlineCount();
+    }
+  );
+});
 
 /* =========================================
    CLEAN OLD RECENT PAIRS
@@ -854,7 +803,6 @@ io.on(
 
 setInterval(
   () => {
-
     const now =
       Date.now();
 
@@ -862,21 +810,17 @@ setInterval(
       const [
         key,
         time
-      ]
-      of recentPairs.entries()
+      ] of recentPairs.entries()
     ) {
-
       if (
         now - time >
         PAIR_COOLDOWN
       ) {
-
         recentPairs.delete(
           key
         );
       }
     }
-
   },
   60 * 1000
 );
@@ -887,9 +831,7 @@ setInterval(
 
 setInterval(
   () => {
-
     cleanQueue();
-
   },
   10 * 1000
 );
@@ -902,7 +844,6 @@ server.listen(
   PORT,
   "0.0.0.0",
   () => {
-
     console.log(
       "===================================="
     );
@@ -924,7 +865,6 @@ server.listen(
       "Online users:",
       onlineUsers.size
     );
-
   }
 );
 ```
