@@ -20,6 +20,12 @@ const PORT = process.env.PORT || 3000;
 ========================================= */
 
 app.use(express.json());
+
+/*
+   Serve the complete Qmegle project folder.
+   This also allows /articles/*.html files
+   to be opened directly.
+*/
 app.use(express.static(__dirname));
 
 /* =========================================
@@ -31,7 +37,7 @@ app.get("/", (req, res) => {
 });
 
 /* =========================================
-   ARTICLES
+   ARTICLES HOME
 ========================================= */
 
 app.get("/articles", (req, res) => {
@@ -50,18 +56,57 @@ app.get("/articles/", (req, res) => {
    ARTICLE DETAIL
 ========================================= */
 
-app.get(
-  "/articles/strangers-se-baat-karne-me-jhijhak",
-  (req, res) => {
-    res.sendFile(
-      path.join(
-        __dirname,
-        "articles",
-        "strangers-se-baat-karne-me-jhijhak.html"
-      )
-    );
+/*
+   Example:
+
+   /articles/online-naye-insaan-se-kya-baat-kare.html
+
+   will open:
+
+   articles/online-naye-insaan-se-kya-baat-kare.html
+*/
+
+app.get("/articles/:article", (req, res) => {
+  const article = req.params.article;
+
+  /*
+     Basic security:
+     Only allow HTML files.
+  */
+  if (!article.endsWith(".html")) {
+    return res.status(404).send("Article not found");
   }
-);
+
+  /*
+     Prevent directory traversal.
+  */
+  if (
+    article.includes("/") ||
+    article.includes("\\") ||
+    article.includes("..")
+  ) {
+    return res.status(404).send("Article not found");
+  }
+
+  const articlePath = path.join(
+    __dirname,
+    "articles",
+    article
+  );
+
+  res.sendFile(articlePath, (err) => {
+    if (err) {
+      console.log(
+        "ARTICLE NOT FOUND:",
+        article
+      );
+
+      if (!res.headersSent) {
+        res.status(404).send("Article not found");
+      }
+    }
+  });
+});
 
 /* =========================================
    HEALTH CHECK
