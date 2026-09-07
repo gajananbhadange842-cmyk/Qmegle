@@ -59,7 +59,9 @@
       --radius: 18px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     html {
       scroll-behavior: smooth;
@@ -72,7 +74,9 @@
       color: var(--text);
     }
 
-    button, input, textarea {
+    button,
+    input,
+    textarea {
       font: inherit;
     }
 
@@ -81,6 +85,7 @@
     }
 
     /* HEADER */
+
     header {
       position: sticky;
       top: 0;
@@ -177,6 +182,7 @@
     }
 
     /* PAGE */
+
     main {
       max-width: 1180px;
       margin: auto;
@@ -184,6 +190,7 @@
     }
 
     /* HERO / VIDEO TOOL */
+
     .video-section {
       display: grid;
       grid-template-columns: .72fr 1.28fr;
@@ -403,6 +410,7 @@
     }
 
     /* CHAT TOOL */
+
     .chat-section {
       background: #fff;
       border: 1px solid #dfe7f2;
@@ -485,6 +493,7 @@
     }
 
     /* FEATURES */
+
     .features {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -527,6 +536,7 @@
     }
 
     /* ARTICLES */
+
     .articles {
       margin-top: 28px;
       background: #fff;
@@ -554,6 +564,29 @@
       margin: 5px 0 0;
       color: var(--muted);
       font-size: 13px;
+    }
+
+    .latest-articles-title {
+      margin: 18px 0 5px;
+      font-size: 21px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .latest-articles-subtitle {
+      margin: 0 0 15px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .older-articles-title {
+      margin: 30px 0 15px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+      font-size: 21px;
+      font-weight: 900;
+      color: var(--text);
     }
 
     .article-grid {
@@ -611,6 +644,7 @@
     }
 
     /* SEO CONTENT */
+
     .info,
     .faq {
       background: #fff;
@@ -654,6 +688,7 @@
     }
 
     /* FOOTER */
+
     footer {
       background: var(--navy);
       color: #aebed4;
@@ -700,6 +735,7 @@
     }
 
     /* REPORT MODAL */
+
     .modal {
       display: none;
       position: fixed;
@@ -745,7 +781,9 @@
     }
 
     /* MOBILE */
+
     @media (max-width: 900px) {
+
       .nav {
         display: none;
       }
@@ -777,9 +815,11 @@
       .footer-inner {
         grid-template-columns: repeat(2, 1fr);
       }
+
     }
 
     @media (max-width: 600px) {
+
       .header-inner {
         min-height: 64px;
         padding: 0 12px;
@@ -880,9 +920,11 @@
         grid-template-columns: 1fr 1fr;
         gap: 20px;
       }
+
     }
 
     @media (max-width: 390px) {
+
       .online-users-badge {
         display: none;
       }
@@ -890,6 +932,7 @@
       .footer-inner {
         grid-template-columns: 1fr;
       }
+
     }
   </style>
 </head>
@@ -912,22 +955,39 @@
     </nav>
 
     <div class="header-actions">
-      <button class="theme-btn" type="button" aria-label="Theme">☾</button>
 
-      <div class="online-users-badge" aria-live="polite">
+      <button
+        class="theme-btn"
+        type="button"
+        aria-label="Theme">
+        ☾
+      </button>
+
+      <div
+        class="online-users-badge"
+        aria-live="polite">
+
         <span class="online-dot"></span>
-        <span><strong id="onlineCount">0</strong> Online</span>
+
+        <span>
+          <strong id="onlineCount">0</strong> Online
+        </span>
+
       </div>
+
     </div>
 
   </div>
 </header>
 
+
 <main>
 
   <!-- VIDEO CHAT -->
 
-  <section id="video-chat" class="video-section">
+  <section
+    id="video-chat"
+    class="video-section">
 
     <div class="hero-copy">
 
@@ -945,9 +1005,19 @@
       </p>
 
       <div class="hero-points">
-        <div class="hero-point">⚡ Instant Start</div>
-        <div class="hero-point">🎲 Random Matching</div>
-        <div class="hero-point">📱 Mobile Friendly</div>
+
+        <div class="hero-point">
+          ⚡ Instant Start
+        </div>
+
+        <div class="hero-point">
+          🎲 Random Matching
+        </div>
+
+        <div class="hero-point">
+          📱 Mobile Friendly
+        </div>
+
       </div>
 
     </div>
@@ -956,6 +1026,7 @@
     <div class="video-tool">
 
       <div class="video-tool-head">
+
         <span class="tool-title">
           Free Random Video Chat
         </span>
@@ -963,6 +1034,7 @@
         <span class="tool-status">
           ● Ready to connect
         </span>
+
       </div>
 
 
@@ -1067,7 +1139,9 @@
 
   <!-- TEXT CHAT -->
 
-  <section class="chat-section" aria-label="Text chat">
+  <section
+    class="chat-section"
+    aria-label="Text chat">
 
     <div class="chat-title">
       Text Chat
@@ -1075,7 +1149,9 @@
 
     <div id="messages"></div>
 
-    <form id="chatForm" class="chat-form">
+    <form
+      id="chatForm"
+      class="chat-form">
 
       <input
         id="messageInput"
@@ -1097,53 +1173,111 @@
 
   <!-- FEATURES -->
 
-  <section class="features" aria-label="Qmegle features">
+  <section
+    class="features"
+    aria-label="Qmegle features">
 
     <div class="feature">
-      <div class="feature-icon">🛡</div>
-      <strong>100% Free</strong>
-      <span>Always free to use</span>
+
+      <div class="feature-icon">
+        🛡
+      </div>
+
+      <strong>
+        100% Free
+      </strong>
+
+      <span>
+        Always free to use
+      </span>
+
     </div>
 
-    <div class="feature">
-      <div class="feature-icon">⚡</div>
-      <strong>No Registration</strong>
-      <span>Start instantly</span>
-    </div>
 
     <div class="feature">
-      <div class="feature-icon">🎲</div>
-      <strong>Random Matching</strong>
-      <span>Meet real people</span>
+
+      <div class="feature-icon">
+        ⚡
+      </div>
+
+      <strong>
+        No Registration
+      </strong>
+
+      <span>
+        Start instantly
+      </span>
+
     </div>
 
-    <div class="feature">
-      <div class="feature-icon">📱</div>
-      <strong>Mobile Friendly</strong>
-      <span>Works on all devices</span>
-    </div>
 
     <div class="feature">
-      <div class="feature-icon">🔒</div>
-      <strong>Safety First</strong>
-      <span>Chat responsibly</span>
+
+      <div class="feature-icon">
+        🎲
+      </div>
+
+      <strong>
+        Random Matching
+      </strong>
+
+      <span>
+        Meet real people
+      </span>
+
+    </div>
+
+
+    <div class="feature">
+
+      <div class="feature-icon">
+        📱
+      </div>
+
+      <strong>
+        Mobile Friendly
+      </strong>
+
+      <span>
+        Works on all devices
+      </span>
+
+    </div>
+
+
+    <div class="feature">
+
+      <div class="feature-icon">
+        🔒
+      </div>
+
+      <strong>
+        Safety First
+      </strong>
+
+      <span>
+        Chat responsibly
+      </span>
+
     </div>
 
   </section>
 
 
   <!-- =========================================
-       LATEST ARTICLES
+       ARTICLES
        ========================================= -->
 
-  <section id="articles" class="articles">
+  <section
+    id="articles"
+    class="articles">
 
     <div class="section-head">
 
       <div>
 
         <h2>
-          Latest Articles
+          Qmegle Articles
         </h2>
 
         <p>
@@ -1159,6 +1293,171 @@
       </a>
 
     </div>
+
+
+    <!-- =========================================
+         LATEST 6 ARTICLES
+         ========================================= -->
+
+    <h3 class="latest-articles-title">
+      🔥 Latest Articles
+    </h3>
+
+    <p class="latest-articles-subtitle">
+      हमारे नए articles में online chat, AI, fake profiles और scam safety से जुड़ी आसान जानकारी पढ़ें।
+    </p>
+
+
+    <div class="article-grid">
+
+
+      <!-- NEW ARTICLE -->
+
+      <article class="article-card">
+
+        <span class="article-tag">
+          AI SAFETY
+        </span>
+
+        <h3>
+          Online Chat में AI Bot को कैसे पहचानें?
+        </h3>
+
+        <p>
+          Online chat में सामने वाला इंसान है या AI bot, इसे पहचानने के आसान संकेत और practical तरीके जानें।
+        </p>
+
+        <a href="/articles/online-chat-ai-bot-kaise-pahchane.html">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <!-- NEW ARTICLE -->
+
+      <article class="article-card">
+
+        <span class="article-tag">
+          FAKE PROFILE
+        </span>
+
+        <h3>
+          AI Fake Profile को कैसे पहचानें?
+        </h3>
+
+        <p>
+          AI की मदद से बनाई गई fake profile को पहचानने के आसान संकेत, suspicious behavior और safety tips जानें।
+        </p>
+
+        <a href="/articles/ai-fake-profile-ko-kaise-pahchane.html">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <!-- NEW ARTICLE -->
+
+      <article class="article-card">
+
+        <span class="article-tag">
+          ONLINE SAFETY
+        </span>
+
+        <h3>
+          Fake Online Friend को कैसे पहचानें?
+        </h3>
+
+        <p>
+          Online friendship में सामने वाला fake हो सकता है या नहीं, इसे पहचानने के common signs और safety tips जानें।
+        </p>
+
+        <a href="/articles/fake-online-friend-ko-kaise-pahchane.html">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <!-- NEW ARTICLE -->
+
+      <article class="article-card">
+
+        <span class="article-tag">
+          SCAM SAFETY
+        </span>
+
+        <h3>
+          Online Chat Scam की शुरुआत कैसे होती है?
+        </h3>
+
+        <p>
+          Online chat scam कैसे शुरू होता है और scammers धीरे-धीरे लोगों का trust कैसे जीतने की कोशिश करते हैं, जानें।
+        </p>
+
+        <a href="/articles/online-chat-scam-ki-shuruaat-kaise-hoti-hai.html">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <!-- NEW ARTICLE -->
+
+      <article class="article-card">
+
+        <span class="article-tag">
+          SCAM WARNING
+        </span>
+
+        <h3>
+          Online Chat Scam के 10 Warning Signs
+        </h3>
+
+        <p>
+          Online conversation में scam के 10 common warning signs जानें, ताकि suspicious व्यक्ति को जल्दी पहचान सकें।
+        </p>
+
+        <a href="/articles/online-chat-scam-ki-shuruaat-10-warning-signs.html">
+          Read Article →
+        </a>
+
+      </article>
+
+
+      <!-- NEW ARTICLE -->
+
+      <article class="article-card">
+
+        <span class="article-tag">
+          ONLINE FRIENDSHIP
+        </span>
+
+        <h3>
+          Online दोस्ती में Catfishing क्या है?
+        </h3>
+
+        <p>
+          Catfishing क्या होता है, fake identity कैसे बनाई जाती है और online friendship में इससे कैसे बचें, जानें।
+        </p>
+
+        <a href="/articles/online-dosti-catfishing-kya-hai.html">
+          Read Article →
+        </a>
+
+      </article>
+
+    </div>
+
+
+    <!-- =========================================
+         OLDER ARTICLES
+         ========================================= -->
+
+    <h3 class="older-articles-title">
+      📚 More Qmegle Articles
+    </h3>
 
 
     <div class="article-grid">
@@ -1421,7 +1720,8 @@
           शुरू करने के practical ideas जानें।
         </p>
 
-        <a href="/articles/kya-kar-rahe-ho-se-aage-baat-kaise-shuru-kare.html">
+        <!-- CORRECTED URL -->
+        <a href="/articles/kya-kar-rahe-ho-se-aage-baat-kaise-shuru-hoti-hai.html">
           Read Article →
         </a>
 
@@ -1884,7 +2184,7 @@
       </article>
 
 
-      <!-- EXISTING SUPPORTING ARTICLE -->
+      <!-- SUPPORTING ARTICLE -->
 
       <article class="article-card">
 
@@ -1908,7 +2208,7 @@
       </article>
 
 
-      <!-- EXISTING SUPPORTING ARTICLE -->
+      <!-- SUPPORTING ARTICLE -->
 
       <article class="article-card">
 
@@ -1932,7 +2232,7 @@
       </article>
 
 
-      <!-- EXISTING SUPPORTING ARTICLE -->
+      <!-- SUPPORTING ARTICLE -->
 
       <article class="article-card">
 
@@ -1956,7 +2256,7 @@
       </article>
 
 
-      <!-- EXISTING SUPPORTING ARTICLE -->
+      <!-- SUPPORTING ARTICLE -->
 
       <article class="article-card">
 
@@ -1980,7 +2280,7 @@
       </article>
 
 
-      <!-- EXISTING SUPPORTING ARTICLE -->
+      <!-- SUPPORTING ARTICLE -->
 
       <article class="article-card">
 
@@ -2079,7 +2379,9 @@
 
   <!-- FAQ -->
 
-  <section id="faq" class="faq">
+  <section
+    id="faq"
+    class="faq">
 
     <h2>
       Frequently Asked Questions
@@ -2165,7 +2467,6 @@
 
   <div class="footer-inner">
 
-
     <div>
 
       <div class="footer-logo">
@@ -2246,7 +2547,6 @@
 
     </div>
 
-
   </div>
 
 </footer>
@@ -2254,7 +2554,9 @@
 
 <!-- REPORT MODAL -->
 
-<div id="reportModal" class="modal">
+<div
+  id="reportModal"
+  class="modal">
 
   <div class="modal-box">
 
