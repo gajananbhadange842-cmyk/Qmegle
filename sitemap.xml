@@ -1,159 +1,152 @@
-```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-    <!-- Main Qmegle Pages -->
+  <url>
+    <loc>https://qmegle.onrender.com/</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/random-video-chat</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/random-video-chat</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/free-video-chat</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/free-video-chat</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/chat-with-strangers</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/chat-with-strangers</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/random-text-chat</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/random-text-chat</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/omegle-alternative</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/omegle-alternative</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/</loc>
+  </url>
 
+  <url>
+    <loc>https://qmegle.onrender.com/articles/random-chat-complete-safety-checklist.html</loc>
+  </url>
 
-    <!-- Articles -->
+  <url>
+    <loc>https://qmegle.onrender.com/articles/internet-par-naye-logon-se-milna-safe-kaise-rahe.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/random-video-chat-ke-baad-dobara-baat-na-ho-to-kya-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/random-chat-complete-safety-checklist.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-kisi-se-baat-karke-achha-lage-to-kya-use-dost-mane.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/internet-par-naye-logon-se-milna-safe-kaise-rahe.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-baatcheet-ko-dosti-me-badalne-se-pehle.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/random-video-chat-ke-baad-dobara-baat-na-ho-to-kya-kare.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/samne-wala-one-word-replies-de-to-kya-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-kisi-se-baat-karke-achha-lage-to-kya-use-dost-mane.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/random-chat-me-achha-first-impression-kaise-banaye.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-baatcheet-ko-dosti-me-badalne-se-pehle.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-chat-jaldi-trust-karne-ke-liye-kahe-to-kya-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/samne-wala-one-word-replies-de-to-kya-kare.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/ajnabi-se-baat-karte-samay-apni-asli-pahchan-kitni-batani-chahiye.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/random-chat-me-achha-first-impression-kaise-banaye.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-naye-dost-kaise-banaye.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-chat-jaldi-trust-karne-ke-liye-kahe-to-kya-kare.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/kya-kar-rahe-ho-se-aage-baat-kaise-shuru-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/ajnabi-se-baat-karte-samay-apni-asli-pahchan-kitni-batani-chahiye.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/sirf-sawal-puchte-rehne-se-chat-boring-kyun-hoti-hai.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-naye-dost-kaise-banaye.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/achhi-baatcheet-karne-wale-log-kya-alag-karte-hain.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/kya-kar-rahe-ho-se-aage-baat-kaise-shuru-kare.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/aapse-koi-baat-nahi-karta-conversation-ki-galtiyan.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/sirf-sawal-puchte-rehne-se-chat-boring-kyun-hoti-hai.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/introvert-naye-logon-se-baat-kaise-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/achhi-baatcheet-karne-wale-log-kya-alag-karte-hain.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-dosti-me-stop-kab-kahna-chahiye.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/aapse-koi-baat-nahi-karta-conversation-ki-galtiyan.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/unknown-link-click-karne-se-pehle-kya-check-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/introvert-naye-logon-se-baat-kaise-kare.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-chat-fake-profile-ko-kaise-pahchane.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-dosti-me-stop-kab-kahna-chahiye.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/video-chat-me-galat-vyavahar-ho-to-kya-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/unknown-link-click-karne-se-pehle-kya-check-kare.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/random-video-chat-camera-on-karne-se-pehle.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-chat-fake-profile-ko-kaise-pahchane.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-chat-personal-information-privacy.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/video-chat-me-galat-vyavahar-ho-to-kya-kare.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/bina-number-diye-online-baat-kaise-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/random-video-chat-camera-on-karne-se-pehle.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-insaan-sach-bol-raha-hai-kaise-pahchane.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-chat-personal-information-privacy.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-dosti-ke-baad-achanak-gayab-kyun.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/bina-number-diye-online-baat-kaise-kare.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/ajnabi-se-baat-karte-samay-kya-nahi-puchna-chahiye.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-insaan-sach-bol-raha-hai-kaise-pahchane.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/samne-wala-interest-na-le-to-kaise-pahchane.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-dosti-ke-baad-achanak-gayab-kyun.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/chat-me-silence-ho-jaye-to-kya-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/ajnabi-se-baat-karte-samay-kya-nahi-puchna-chahiye.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-naye-insaan-se-kya-baat-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/samne-wala-interest-na-le-to-kaise-pahchane.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/hi-ke-baad-kya-baat-kare.html</loc>
+  </url>
 
-    <url>
-        <loc>https://qmegle.onrender.com/articles/chat-me-silence-ho-jaye-to-kya-kare.html</loc>
-    </url>
-
-    <url>
-        <loc>https://qmegle.onrender.com/articles/online-naye-insaan-se-kya-baat-kare.html</loc>
-    </url>
-
-    <url>
-        <loc>https://qmegle.onrender.com/articles/hi-ke-baad-kya-baat-kare.html</loc>
-    </url>
-
-    <url>
-        <loc>https://qmegle.onrender.com/articles/strangers-se-baat-karne-me-jhijhak.html</loc>
-    </url>
+  <url>
+    <loc>https://qmegle.onrender.com/articles/strangers-se-baat-karne-me-jhijhak.html</loc>
+  </url>
 
 </urlset>
-```
