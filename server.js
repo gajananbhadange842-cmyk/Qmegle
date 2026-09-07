@@ -1,3 +1,4 @@
+```javascript
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -49,6 +50,17 @@ app.get("/articles", (req, res) => {
 app.get("/articles/", (req, res) => {
   res.sendFile(
     path.join(__dirname, "articles", "index.html")
+  );
+});
+
+/* =========================================
+   SITEMAP
+========================================= */
+
+app.get("/sitemap.xml", (req, res) => {
+  res.type("application/xml");
+  res.sendFile(
+    path.join(__dirname, "sitemap.xml")
   );
 });
 
@@ -739,3 +751,4 @@ server.listen(
     );
   }
 );
+```
