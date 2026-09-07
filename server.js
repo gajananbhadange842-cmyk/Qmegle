@@ -78,6 +78,12 @@ app.get("/terms", (req, res) => {
   );
 });
 
+app.get("/community-guidelines", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "community-guidelines.html")
+  );
+});
+
 
 /* =========================================
    SITEMAP
