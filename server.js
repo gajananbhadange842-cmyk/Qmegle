@@ -15,27 +15,25 @@ methods: ["GET", "POST"]
 
 const PORT = process.env.PORT || 3000;
 
-/* =========================================
-EXPRESS
-========================================= */
-
 app.use(express.json());
-
 app.use(express.static(__dirname));
 
-/* =========================================
-MAIN PAGE
-========================================= */
+const waitingQueue = [];
+const partners = new Map();
+const previousPartner = new Map();
+const recentPairs = new Map();
+const onlineUsers = new Set();
+
+const PAIR_COOLDOWN = 5 * 60 * 1000;
+const NEXT_SEARCH_TIME = 2000;
+
+/* MAIN PAGE */
 
 app.get("/", (req, res) => {
-res.sendFile(
-path.join(__dirname, "index.html")
-);
+res.sendFile(path.join(__dirname, "index.html"));
 });
 
-/* =========================================
-ARTICLES HOME
-========================================= */
+/* ARTICLES */
 
 app.get("/articles", (req, res) => {
 res.sendFile(
@@ -43,56 +41,7 @@ path.join(__dirname, "articles", "index.html")
 );
 });
 
-app.get("/articles/", (req, res) => {
-res.sendFile(
-path.join(__dirname, "articles", "index.html")
-);
-});
-
-/* =========================================
-ARTICLE DETAIL
-========================================= */
-
-app.get("/articles/:article", (req, res) => {
-const article = req.params.article;
-
-if (!article.endsWith(".html")) {
-return res.status(404).send("Article not found");
-}
-
-if (
-article.includes("/") ||
-article.includes("..")
-) {
-return res.status(404).send("Article not found");
-}
-
-const articlePath = path.join(
-__dirname,
-"articles",
-article
-);
-
-res.sendFile(articlePath, (err) => {
-if (err) {
-console.log(
-"ARTICLE NOT FOUND:",
-article
-);
-
-```
-  if (!res.headersSent) {
-    res.status(404).send("Article not found");
-  }
-}
-```
-
-});
-});
-
-/* =========================================
-SITEMAP
-========================================= */
+/* SITEMAP */
 
 app.get("/sitemap.xml", (req, res) => {
 res.type("application/xml");
@@ -102,19 +51,13 @@ path.join(__dirname, "sitemap.xml")
 );
 });
 
-/* =========================================
-HEALTH CHECK
-========================================= */
+/* HEALTH */
 
 app.get("/health", (req, res) => {
-res.status(200).send(
-"Qmegle server is running"
-);
+res.status(200).send("Qmegle server is running");
 });
 
-/* =========================================
-ONLINE USERS API
-========================================= */
+/* ONLINE USERS */
 
 app.get("/api/online", (req, res) => {
 res.json({
@@ -122,9 +65,7 @@ online: onlineUsers.size
 });
 });
 
-/* =========================================
-SEO PAGES
-========================================= */
+/* SEO PAGES */
 
 const seoPages = [
 "random-video-chat",
@@ -138,41 +79,18 @@ const seoPages = [
 seoPages.forEach((page) => {
 app.get("/" + page, (req, res) => {
 res.sendFile(
-path.join(
-__dirname,
-page + ".html"
-)
+path.join(__dirname, page + ".html")
 );
 });
 });
 
-/* =========================================
-USERS / MATCHING
-========================================= */
-
-const waitingQueue = [];
-const partners = new Map();
-const previousPartner = new Map();
-const recentPairs = new Map();
-const onlineUsers = new Set();
-const nextUsers = new Set();
-
-const PAIR_COOLDOWN = 5 * 60 * 1000;
-const NEXT_SEARCH_TIME = 2000;
-
-/* =========================================
-PAIR KEY
-========================================= */
+/* PAIR KEY */
 
 function pairKey(a, b) {
-return [a, b]
-.sort()
-.join(":");
+return [a, b].sort().join(":");
 }
 
-/* =========================================
-RECENT PAIR CHECK
-========================================= */
+/* RECENT PAIR */
 
 function isRecentPair(a, b) {
 const key = pairKey(a, b);
@@ -182,20 +100,13 @@ if (!time) {
 return false;
 }
 
-if (
-Date.now() - time >
-PAIR_COOLDOWN
-) {
+if (Date.now() - time > PAIR_COOLDOWN) {
 recentPairs.delete(key);
 return false;
 }
 
 return true;
 }
-
-/* =========================================
-REMEMBER PAIR
-========================================= */
 
 function rememberPair(a, b) {
 recentPairs.set(
@@ -204,27 +115,16 @@ Date.now()
 );
 }
 
-/* =========================================
-REMOVE FROM QUEUE
-========================================= */
+/* QUEUE */
 
 function removeFromQueue(socketId) {
-let index;
+let index = waitingQueue.indexOf(socketId);
 
-while (
-(index =
-waitingQueue.indexOf(socketId)) !== -1
-) {
-waitingQueue.splice(
-index,
-1
-);
+while (index !== -1) {
+waitingQueue.splice(index, 1);
+index = waitingQueue.indexOf(socketId);
 }
 }
-
-/* =========================================
-ADD TO QUEUE
-========================================= */
 
 function addToQueue(socketId) {
 if (!onlineUsers.has(socketId)) {
@@ -235,25 +135,14 @@ if (partners.has(socketId)) {
 return false;
 }
 
-if (
-waitingQueue.includes(socketId)
-) {
+if (waitingQueue.includes(socketId)) {
 return false;
 }
 
 waitingQueue.push(socketId);
 
-console.log(
-"Added to waiting queue:",
-socketId
-);
-
 return true;
 }
-
-/* =========================================
-CLEAN QUEUE
-========================================= */
 
 function cleanQueue() {
 for (
@@ -268,19 +157,14 @@ if (
   !onlineUsers.has(id) ||
   partners.has(id)
 ) {
-  waitingQueue.splice(
-    i,
-    1
-  );
+  waitingQueue.splice(i, 1);
 }
 ```
 
 }
 }
 
-/* =========================================
-FIND BEST STRANGER
-========================================= */
+/* FIND PARTNER */
 
 function findBestStranger(socketId) {
 cleanQueue();
@@ -288,73 +172,46 @@ cleanQueue();
 const oldPartner =
 previousPartner.get(socketId);
 
-for (
-const candidate
-of waitingQueue
-) {
-if (
-candidate === socketId
-) {
+for (const candidate of waitingQueue) {
+if (candidate === socketId) {
 continue;
 }
 
 ```
-if (
-  !onlineUsers.has(candidate)
-) {
+if (!onlineUsers.has(candidate)) {
   continue;
 }
 
-if (
-  partners.has(candidate)
-) {
+if (partners.has(candidate)) {
   continue;
 }
 
-if (
-  candidate === oldPartner
-) {
+if (candidate === oldPartner) {
   continue;
 }
 
-if (
-  !isRecentPair(
-    socketId,
-    candidate
-  )
-) {
+if (!isRecentPair(socketId, candidate)) {
   return candidate;
 }
 ```
 
 }
 
-for (
-const candidate
-of waitingQueue
-) {
-if (
-candidate === socketId
-) {
+for (const candidate of waitingQueue) {
+if (candidate === socketId) {
 continue;
 }
 
 ```
-if (
-  !onlineUsers.has(candidate)
-) {
+if (!onlineUsers.has(candidate)) {
   continue;
 }
 
-if (
-  partners.has(candidate)
-) {
+if (partners.has(candidate)) {
   continue;
 }
 
-if (
-  candidate === oldPartner
-) {
+if (candidate === oldPartner) {
   continue;
 }
 
@@ -366,78 +223,49 @@ return candidate;
 return null;
 }
 
-/* =========================================
-MATCH USERS
-========================================= */
+/* MATCH */
 
-function matchUsers(
-userA,
-userB
-) {
+function matchUsers(userA, userB) {
 if (userA === userB) {
 return false;
 }
 
-if (
-!onlineUsers.has(userA) ||
-!onlineUsers.has(userB)
-) {
+if (!onlineUsers.has(userA)) {
 return false;
 }
 
-if (
-partners.has(userA) ||
-partners.has(userB)
-) {
+if (!onlineUsers.has(userB)) {
+return false;
+}
+
+if (partners.has(userA)) {
+return false;
+}
+
+if (partners.has(userB)) {
 return false;
 }
 
 removeFromQueue(userA);
 removeFromQueue(userB);
 
-nextUsers.delete(userA);
-nextUsers.delete(userB);
+partners.set(userA, userB);
+partners.set(userB, userA);
 
-partners.set(
-userA,
-userB
-);
+previousPartner.set(userA, userB);
+previousPartner.set(userB, userA);
 
-partners.set(
-userB,
-userA
-);
+rememberPair(userA, userB);
 
-previousPartner.set(
-userA,
-userB
-);
-
-previousPartner.set(
-userB,
-userA
-);
-
-rememberPair(
-userA,
-userB
-);
-
-io.to(userA).emit(
-"matched",
-{
+io.to(userA).emit("matched", {
 partnerId: userB,
 initiator: true
-}
-);
+});
 
-io.to(userB).emit(
-"matched",
-{
+io.to(userB).emit("matched", {
 partnerId: userA,
 initiator: false
-}
-);
+});
 
 console.log(
 "MATCHED:",
@@ -449,29 +277,21 @@ userB
 return true;
 }
 
-/* =========================================
-TRY MATCH
-========================================= */
+/* TRY MATCH */
 
 function tryMatch(socketId) {
-if (
-!onlineUsers.has(socketId)
-) {
+if (!onlineUsers.has(socketId)) {
 return false;
 }
 
-if (
-partners.has(socketId)
-) {
+if (partners.has(socketId)) {
 return false;
 }
 
 removeFromQueue(socketId);
 
 const stranger =
-findBestStranger(
-socketId
-);
+findBestStranger(socketId);
 
 if (stranger) {
 return matchUsers(
@@ -482,502 +302,300 @@ stranger
 
 addToQueue(socketId);
 
-io.to(socketId).emit(
-"waiting"
-);
+io.to(socketId).emit("waiting");
 
 return false;
 }
 
-/* =========================================
-ONLINE COUNT
-========================================= */
+/* ONLINE COUNT */
 
 function broadcastOnlineCount() {
-const count =
-onlineUsers.size;
-
-io.emit(
-"online-count",
-{
-online: count
-}
-);
+io.emit("online-count", {
+online: onlineUsers.size
+});
 
 console.log(
 "Online users:",
-count
+onlineUsers.size
 );
 }
 
-/* =========================================
-SOCKET CONNECTION
-========================================= */
+/* SOCKET */
 
-io.on(
-"connection",
-(socket) => {
-const socketId =
-socket.id;
+io.on("connection", (socket) => {
+const socketId = socket.id;
 
-```
 console.log(
-  "USER CONNECTED:",
-  socketId
+"USER CONNECTED:",
+socketId
 );
 
-onlineUsers.add(
-  socketId
-);
+onlineUsers.add(socketId);
 
-socket.emit(
-  "online-count",
-  {
-    online:
-      onlineUsers.size
-  }
-);
+socket.emit("online-count", {
+online: onlineUsers.size
+});
 
 broadcastOnlineCount();
 
-/* =====================================
-   FIND PARTNER
-===================================== */
+/* FIND PARTNER */
 
-socket.on(
-  "find-partner",
-  () => {
-    if (
-      !onlineUsers.has(
-        socketId
-      )
-    ) {
-      return;
-    }
+socket.on("find-partner", () => {
+if (!onlineUsers.has(socketId)) {
+return;
+}
 
-    if (
-      partners.has(
-        socketId
-      )
-    ) {
-      return;
-    }
+```
+if (partners.has(socketId)) {
+  return;
+}
 
-    tryMatch(
-      socketId
-    );
-  }
-);
+tryMatch(socketId);
+```
 
-/* =====================================
-   WEBRTC SIGNAL
-===================================== */
+});
 
-socket.on(
+/* SIGNAL */
+
+socket.on("signal", (data) => {
+if (!data) {
+return;
+}
+
+```
+const partnerId =
+  partners.get(socketId);
+
+if (!partnerId) {
+  return;
+}
+
+io.to(partnerId).emit(
   "signal",
-  (data) => {
-    if (!data) {
-      return;
-    }
-
-    const partnerId =
-      partners.get(
-        socketId
-      );
-
-    if (!partnerId) {
-      return;
-    }
-
-    io.to(
-      partnerId
-    ).emit(
-      "signal",
-      data
-    );
-  }
+  data
 );
+```
 
-/* =====================================
-   CHAT MESSAGE
-===================================== */
+});
 
-socket.on(
+/* CHAT */
+
+socket.on("chat-message", (data) => {
+const partnerId =
+partners.get(socketId);
+
+```
+if (!partnerId) {
+  return;
+}
+
+if (!data) {
+  return;
+}
+
+let message =
+  String(data.message || "").trim();
+
+if (message.length > 2000) {
+  message =
+    message.substring(0, 2000);
+}
+
+if (!message) {
+  return;
+}
+
+io.to(partnerId).emit(
   "chat-message",
-  (data) => {
-    const partnerId =
-      partners.get(
-        socketId
-      );
-
-    if (!partnerId) {
-      return;
-    }
-
-    if (!data) {
-      return;
-    }
-
-    let message =
-      String(
-        data.message || ""
-      ).trim();
-
-    if (
-      message.length > 2000
-    ) {
-      message =
-        message.substring(
-          0,
-          2000
-        );
-    }
-
-    if (!message) {
-      return;
-    }
-
-    io.to(
-      partnerId
-    ).emit(
-      "chat-message",
-      {
-        message
-      }
-    );
-  }
-);
-
-/* =====================================
-   REPORT USER
-===================================== */
-
-socket.on(
-  "report-user",
-  (data) => {
-    const partnerId =
-      partners.get(
-        socketId
-      );
-
-    if (!partnerId) {
-      return;
-    }
-
-    let reason =
-      String(
-        data?.reason || ""
-      ).trim();
-
-    if (
-      reason.length > 1000
-    ) {
-      reason =
-        reason.substring(
-          0,
-          1000
-        );
-    }
-
-    console.log(
-      "USER REPORT:",
-      {
-        reporter:
-          socketId,
-        reported:
-          partnerId,
-        reason
-      }
-    );
-
-    io.to(
-      socketId
-    ).emit(
-      "user-reported"
-    );
-  }
-);
-
-/* =====================================
-   NEXT
-===================================== */
-
-socket.on(
-  "next",
-  () => {
-    const oldPartner =
-      partners.get(
-        socketId
-      );
-
-    if (oldPartner) {
-      partners.delete(
-        socketId
-      );
-
-      partners.delete(
-        oldPartner
-      );
-
-      nextUsers.add(
-        socketId
-      );
-
-      nextUsers.add(
-        oldPartner
-      );
-
-      io.to(
-        oldPartner
-      ).emit(
-        "partner-left"
-      );
-
-      removeFromQueue(
-        socketId
-      );
-
-      removeFromQueue(
-        oldPartner
-      );
-    }
-
-    setTimeout(
-      () => {
-        if (
-          !onlineUsers.has(
-            socketId
-          )
-        ) {
-          return;
-        }
-
-        if (
-          partners.has(
-            socketId
-          )
-        ) {
-          return;
-        }
-
-        nextUsers.delete(
-          socketId
-        );
-
-        tryMatch(
-          socketId
-        );
-      },
-      NEXT_SEARCH_TIME
-    );
-
-    if (oldPartner) {
-      setTimeout(
-        () => {
-          if (
-            !onlineUsers.has(
-              oldPartner
-            )
-          ) {
-            return;
-          }
-
-          if (
-            partners.has(
-              oldPartner
-            )
-          ) {
-            return;
-          }
-
-          nextUsers.delete(
-            oldPartner
-          );
-
-          tryMatch(
-            oldPartner
-          );
-        },
-        NEXT_SEARCH_TIME
-      );
-    }
-  }
-);
-
-/* =====================================
-   STOP
-===================================== */
-
-socket.on(
-  "stop",
-  () => {
-    const partnerId =
-      partners.get(
-        socketId
-      );
-
-    if (partnerId) {
-      partners.delete(
-        socketId
-      );
-
-      partners.delete(
-        partnerId
-      );
-
-      if (
-        onlineUsers.has(
-          partnerId
-        )
-      ) {
-        io.to(
-          partnerId
-        ).emit(
-          "partner-left"
-        );
-      }
-    }
-
-    removeFromQueue(
-      socketId
-    );
-
-    nextUsers.delete(
-      socketId
-    );
-
-    socket.emit(
-      "stopped"
-    );
-  }
-);
-
-/* =====================================
-   DISCONNECT
-===================================== */
-
-socket.on(
-  "disconnect",
-  () => {
-    console.log(
-      "USER DISCONNECTED:",
-      socketId
-    );
-
-    onlineUsers.delete(
-      socketId
-    );
-
-    removeFromQueue(
-      socketId
-    );
-
-    nextUsers.delete(
-      socketId
-    );
-
-    const partnerId =
-      partners.get(
-        socketId
-      );
-
-    if (partnerId) {
-      partners.delete(
-        socketId
-      );
-
-      partners.delete(
-        partnerId
-      );
-
-      if (
-        onlineUsers.has(
-          partnerId
-        )
-      ) {
-        io.to(
-          partnerId
-        ).emit(
-          "partner-left"
-        );
-
-        setTimeout(
-          () => {
-            if (
-              onlineUsers.has(
-                partnerId
-              ) &&
-              !partners.has(
-                partnerId
-              )
-            ) {
-              tryMatch(
-                partnerId
-              );
-            }
-          },
-          1000
-        );
-      }
-    }
-
-    previousPartner.delete(
-      socketId
-    );
-
-    broadcastOnlineCount();
+  {
+    message: message
   }
 );
 ```
 
+});
+
+/* REPORT */
+
+socket.on("report-user", (data) => {
+const partnerId =
+partners.get(socketId);
+
+```
+if (!partnerId) {
+  return;
 }
+
+let reason =
+  String(
+    data && data.reason
+      ? data.reason
+      : ""
+  ).trim();
+
+if (reason.length > 1000) {
+  reason =
+    reason.substring(0, 1000);
+}
+
+console.log(
+  "USER REPORT:",
+  {
+    reporter: socketId,
+    reported: partnerId,
+    reason: reason
+  }
 );
 
-/* =========================================
-CLEAN OLD RECENT PAIRS
-========================================= */
+io.to(socketId).emit(
+  "user-reported"
+);
+```
 
-setInterval(
-() => {
-const now =
-Date.now();
+});
+
+/* NEXT */
+
+socket.on("next", () => {
+const oldPartner =
+partners.get(socketId);
 
 ```
+if (oldPartner) {
+  partners.delete(socketId);
+  partners.delete(oldPartner);
+
+  io.to(oldPartner).emit(
+    "partner-left"
+  );
+
+  removeFromQueue(socketId);
+  removeFromQueue(oldPartner);
+}
+
+setTimeout(() => {
+  if (!onlineUsers.has(socketId)) {
+    return;
+  }
+
+  if (partners.has(socketId)) {
+    return;
+  }
+
+  tryMatch(socketId);
+}, NEXT_SEARCH_TIME);
+
+if (oldPartner) {
+  setTimeout(() => {
+    if (!onlineUsers.has(oldPartner)) {
+      return;
+    }
+
+    if (partners.has(oldPartner)) {
+      return;
+    }
+
+    tryMatch(oldPartner);
+  }, NEXT_SEARCH_TIME);
+}
+```
+
+});
+
+/* STOP */
+
+socket.on("stop", () => {
+const partnerId =
+partners.get(socketId);
+
+```
+if (partnerId) {
+  partners.delete(socketId);
+  partners.delete(partnerId);
+
+  if (onlineUsers.has(partnerId)) {
+    io.to(partnerId).emit(
+      "partner-left"
+    );
+  }
+}
+
+removeFromQueue(socketId);
+
+socket.emit("stopped");
+```
+
+});
+
+/* DISCONNECT */
+
+socket.on("disconnect", () => {
+console.log(
+"USER DISCONNECTED:",
+socketId
+);
+
+```
+onlineUsers.delete(socketId);
+
+removeFromQueue(socketId);
+
+const partnerId =
+  partners.get(socketId);
+
+if (partnerId) {
+  partners.delete(socketId);
+  partners.delete(partnerId);
+
+  if (onlineUsers.has(partnerId)) {
+    io.to(partnerId).emit(
+      "partner-left"
+    );
+
+    setTimeout(() => {
+      if (
+        onlineUsers.has(partnerId) &&
+        !partners.has(partnerId)
+      ) {
+        tryMatch(partnerId);
+      }
+    }, 1000);
+  }
+}
+
+previousPartner.delete(socketId);
+
+broadcastOnlineCount();
+```
+
+});
+});
+
+/* CLEAN RECENT PAIRS */
+
+setInterval(() => {
+const now = Date.now();
+
 for (
-  const [
-    key,
-    time
-  ] of recentPairs.entries()
+const [key, time]
+of recentPairs.entries()
 ) {
-  if (
-    now - time >
-    PAIR_COOLDOWN
-  ) {
-    recentPairs.delete(
-      key
-    );
-  }
+if (
+now - time >
+PAIR_COOLDOWN
+) {
+recentPairs.delete(key);
 }
-```
+}
+}, 60000);
 
-},
-60 * 1000
-);
+/* CLEAN QUEUE */
 
-/* =========================================
-CLEAN WAITING QUEUE
-========================================= */
-
-setInterval(
-() => {
+setInterval(() => {
 cleanQueue();
-},
-10 * 1000
-);
+}, 10000);
 
-/* =========================================
-SERVER START
-========================================= */
+/* START SERVER */
 
 server.listen(
 PORT,
