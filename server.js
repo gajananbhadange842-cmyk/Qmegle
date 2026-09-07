@@ -28,7 +28,9 @@ MAIN PAGE
 ========================================= */
 
 app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "index.html"));
+res.sendFile(
+path.join(__dirname, "index.html")
+);
 });
 
 /* =========================================
@@ -73,7 +75,10 @@ article
 
 res.sendFile(articlePath, (err) => {
 if (err) {
-console.log("ARTICLE NOT FOUND:", article);
+console.log(
+"ARTICLE NOT FOUND:",
+article
+);
 
 ```
   if (!res.headersSent) {
@@ -102,7 +107,9 @@ HEALTH CHECK
 ========================================= */
 
 app.get("/health", (req, res) => {
-res.status(200).send("Qmegle server is running");
+res.status(200).send(
+"Qmegle server is running"
+);
 });
 
 /* =========================================
@@ -131,7 +138,10 @@ const seoPages = [
 seoPages.forEach((page) => {
 app.get("/" + page, (req, res) => {
 res.sendFile(
-path.join(__dirname, page + ".html")
+path.join(
+__dirname,
+page + ".html"
+)
 );
 });
 });
@@ -155,7 +165,9 @@ PAIR KEY
 ========================================= */
 
 function pairKey(a, b) {
-return [a, b].sort().join(":");
+return [a, b]
+.sort()
+.join(":");
 }
 
 /* =========================================
@@ -170,7 +182,10 @@ if (!time) {
 return false;
 }
 
-if (Date.now() - time > PAIR_COOLDOWN) {
+if (
+Date.now() - time >
+PAIR_COOLDOWN
+) {
 recentPairs.delete(key);
 return false;
 }
@@ -197,9 +212,13 @@ function removeFromQueue(socketId) {
 let index;
 
 while (
-(index = waitingQueue.indexOf(socketId)) !== -1
+(index =
+waitingQueue.indexOf(socketId)) !== -1
 ) {
-waitingQueue.splice(index, 1);
+waitingQueue.splice(
+index,
+1
+);
 }
 }
 
@@ -216,7 +235,9 @@ if (partners.has(socketId)) {
 return false;
 }
 
-if (waitingQueue.includes(socketId)) {
+if (
+waitingQueue.includes(socketId)
+) {
 return false;
 }
 
@@ -247,7 +268,10 @@ if (
   !onlineUsers.has(id) ||
   partners.has(id)
 ) {
-  waitingQueue.splice(i, 1);
+  waitingQueue.splice(
+    i,
+    1
+  );
 }
 ```
 
@@ -264,46 +288,73 @@ cleanQueue();
 const oldPartner =
 previousPartner.get(socketId);
 
-for (const candidate of waitingQueue) {
-if (candidate === socketId) {
+for (
+const candidate
+of waitingQueue
+) {
+if (
+candidate === socketId
+) {
 continue;
 }
 
 ```
-if (!onlineUsers.has(candidate)) {
+if (
+  !onlineUsers.has(candidate)
+) {
   continue;
 }
 
-if (partners.has(candidate)) {
+if (
+  partners.has(candidate)
+) {
   continue;
 }
 
-if (candidate === oldPartner) {
+if (
+  candidate === oldPartner
+) {
   continue;
 }
 
-if (!isRecentPair(socketId, candidate)) {
+if (
+  !isRecentPair(
+    socketId,
+    candidate
+  )
+) {
   return candidate;
 }
 ```
 
 }
 
-for (const candidate of waitingQueue) {
-if (candidate === socketId) {
+for (
+const candidate
+of waitingQueue
+) {
+if (
+candidate === socketId
+) {
 continue;
 }
 
 ```
-if (!onlineUsers.has(candidate)) {
+if (
+  !onlineUsers.has(candidate)
+) {
   continue;
 }
 
-if (partners.has(candidate)) {
+if (
+  partners.has(candidate)
+) {
   continue;
 }
 
-if (candidate === oldPartner) {
+if (
+  candidate === oldPartner
+) {
   continue;
 }
 
@@ -319,7 +370,10 @@ return null;
 MATCH USERS
 ========================================= */
 
-function matchUsers(userA, userB) {
+function matchUsers(
+userA,
+userB
+) {
 if (userA === userB) {
 return false;
 }
@@ -344,23 +398,46 @@ removeFromQueue(userB);
 nextUsers.delete(userA);
 nextUsers.delete(userB);
 
-partners.set(userA, userB);
-partners.set(userB, userA);
+partners.set(
+userA,
+userB
+);
 
-previousPartner.set(userA, userB);
-previousPartner.set(userB, userA);
+partners.set(
+userB,
+userA
+);
 
-rememberPair(userA, userB);
+previousPartner.set(
+userA,
+userB
+);
 
-io.to(userA).emit("matched", {
+previousPartner.set(
+userB,
+userA
+);
+
+rememberPair(
+userA,
+userB
+);
+
+io.to(userA).emit(
+"matched",
+{
 partnerId: userB,
 initiator: true
-});
+}
+);
 
-io.to(userB).emit("matched", {
+io.to(userB).emit(
+"matched",
+{
 partnerId: userA,
 initiator: false
-});
+}
+);
 
 console.log(
 "MATCHED:",
@@ -377,18 +454,24 @@ TRY MATCH
 ========================================= */
 
 function tryMatch(socketId) {
-if (!onlineUsers.has(socketId)) {
+if (
+!onlineUsers.has(socketId)
+) {
 return false;
 }
 
-if (partners.has(socketId)) {
+if (
+partners.has(socketId)
+) {
 return false;
 }
 
 removeFromQueue(socketId);
 
 const stranger =
-findBestStranger(socketId);
+findBestStranger(
+socketId
+);
 
 if (stranger) {
 return matchUsers(
@@ -399,7 +482,9 @@ stranger
 
 addToQueue(socketId);
 
-io.to(socketId).emit("waiting");
+io.to(socketId).emit(
+"waiting"
+);
 
 return false;
 }
@@ -409,11 +494,15 @@ ONLINE COUNT
 ========================================= */
 
 function broadcastOnlineCount() {
-const count = onlineUsers.size;
+const count =
+onlineUsers.size;
 
-io.emit("online-count", {
+io.emit(
+"online-count",
+{
 online: count
-});
+}
+);
 
 console.log(
 "Online users:",
@@ -425,303 +514,466 @@ count
 SOCKET CONNECTION
 ========================================= */
 
-io.on("connection", (socket) => {
-const socketId = socket.id;
+io.on(
+"connection",
+(socket) => {
+const socketId =
+socket.id;
 
+```
 console.log(
-"USER CONNECTED:",
-socketId
+  "USER CONNECTED:",
+  socketId
 );
 
-onlineUsers.add(socketId);
+onlineUsers.add(
+  socketId
+);
 
-socket.emit("online-count", {
-online: onlineUsers.size
-});
+socket.emit(
+  "online-count",
+  {
+    online:
+      onlineUsers.size
+  }
+);
 
 broadcastOnlineCount();
 
 /* =====================================
-FIND PARTNER
+   FIND PARTNER
 ===================================== */
 
-socket.on("find-partner", () => {
-if (!onlineUsers.has(socketId)) {
-return;
-}
+socket.on(
+  "find-partner",
+  () => {
+    if (
+      !onlineUsers.has(
+        socketId
+      )
+    ) {
+      return;
+    }
 
-```
-if (partners.has(socketId)) {
-  return;
-}
+    if (
+      partners.has(
+        socketId
+      )
+    ) {
+      return;
+    }
 
-tryMatch(socketId);
-```
-
-});
+    tryMatch(
+      socketId
+    );
+  }
+);
 
 /* =====================================
-WEBRTC SIGNAL
+   WEBRTC SIGNAL
 ===================================== */
 
-socket.on("signal", (data) => {
-if (!data) {
-return;
-}
-
-```
-const partnerId =
-  partners.get(socketId);
-
-if (!partnerId) {
-  return;
-}
-
-io.to(partnerId).emit(
+socket.on(
   "signal",
-  data
-);
-```
+  (data) => {
+    if (!data) {
+      return;
+    }
 
-});
+    const partnerId =
+      partners.get(
+        socketId
+      );
+
+    if (!partnerId) {
+      return;
+    }
+
+    io.to(
+      partnerId
+    ).emit(
+      "signal",
+      data
+    );
+  }
+);
 
 /* =====================================
-CHAT MESSAGE
+   CHAT MESSAGE
 ===================================== */
 
-socket.on("chat-message", (data) => {
-const partnerId =
-partners.get(socketId);
-
-```
-if (!partnerId) {
-  return;
-}
-
-if (!data) {
-  return;
-}
-
-let message =
-  String(data.message || "").trim();
-
-if (message.length > 2000) {
-  message =
-    message.substring(0, 2000);
-}
-
-if (!message) {
-  return;
-}
-
-io.to(partnerId).emit(
+socket.on(
   "chat-message",
-  {
-    message
-  }
-);
-```
+  (data) => {
+    const partnerId =
+      partners.get(
+        socketId
+      );
 
-});
-
-/* =====================================
-REPORT USER
-===================================== */
-
-socket.on("report-user", (data) => {
-const partnerId =
-partners.get(socketId);
-
-```
-if (!partnerId) {
-  return;
-}
-
-let reason =
-  String(data?.reason || "").trim();
-
-if (reason.length > 1000) {
-  reason =
-    reason.substring(0, 1000);
-}
-
-console.log(
-  "USER REPORT:",
-  {
-    reporter: socketId,
-    reported: partnerId,
-    reason
-  }
-);
-
-io.to(socketId).emit(
-  "user-reported"
-);
-```
-
-});
-
-/* =====================================
-NEXT
-===================================== */
-
-socket.on("next", () => {
-const oldPartner =
-partners.get(socketId);
-
-```
-if (oldPartner) {
-  partners.delete(socketId);
-  partners.delete(oldPartner);
-
-  nextUsers.add(socketId);
-  nextUsers.add(oldPartner);
-
-  io.to(oldPartner).emit(
-    "partner-left"
-  );
-
-  removeFromQueue(socketId);
-  removeFromQueue(oldPartner);
-}
-
-setTimeout(() => {
-  if (!onlineUsers.has(socketId)) {
-    return;
-  }
-
-  if (partners.has(socketId)) {
-    return;
-  }
-
-  nextUsers.delete(socketId);
-
-  tryMatch(socketId);
-}, NEXT_SEARCH_TIME);
-
-if (oldPartner) {
-  setTimeout(() => {
-    if (!onlineUsers.has(oldPartner)) {
+    if (!partnerId) {
       return;
     }
 
-    if (partners.has(oldPartner)) {
+    if (!data) {
       return;
     }
 
-    nextUsers.delete(oldPartner);
+    let message =
+      String(
+        data.message || ""
+      ).trim();
 
-    tryMatch(oldPartner);
-  }, NEXT_SEARCH_TIME);
-}
-```
+    if (
+      message.length > 2000
+    ) {
+      message =
+        message.substring(
+          0,
+          2000
+        );
+    }
 
-});
+    if (!message) {
+      return;
+    }
 
-/* =====================================
-STOP
-===================================== */
-
-socket.on("stop", () => {
-const partnerId =
-partners.get(socketId);
-
-```
-if (partnerId) {
-  partners.delete(socketId);
-  partners.delete(partnerId);
-
-  if (onlineUsers.has(partnerId)) {
-    io.to(partnerId).emit(
-      "partner-left"
-    );
-  }
-}
-
-removeFromQueue(socketId);
-
-nextUsers.delete(socketId);
-
-socket.emit("stopped");
-```
-
-});
-
-/* =====================================
-DISCONNECT
-===================================== */
-
-socket.on("disconnect", () => {
-console.log(
-"USER DISCONNECTED:",
-socketId
-);
-
-```
-onlineUsers.delete(socketId);
-
-removeFromQueue(socketId);
-
-nextUsers.delete(socketId);
-
-const partnerId =
-  partners.get(socketId);
-
-if (partnerId) {
-  partners.delete(socketId);
-  partners.delete(partnerId);
-
-  if (onlineUsers.has(partnerId)) {
-    io.to(partnerId).emit(
-      "partner-left"
-    );
-
-    setTimeout(() => {
-      if (
-        onlineUsers.has(partnerId) &&
-        !partners.has(partnerId)
-      ) {
-        tryMatch(partnerId);
+    io.to(
+      partnerId
+    ).emit(
+      "chat-message",
+      {
+        message
       }
-    }, 1000);
+    );
   }
-}
+);
 
-previousPartner.delete(socketId);
+/* =====================================
+   REPORT USER
+===================================== */
 
-broadcastOnlineCount();
+socket.on(
+  "report-user",
+  (data) => {
+    const partnerId =
+      partners.get(
+        socketId
+      );
+
+    if (!partnerId) {
+      return;
+    }
+
+    let reason =
+      String(
+        data?.reason || ""
+      ).trim();
+
+    if (
+      reason.length > 1000
+    ) {
+      reason =
+        reason.substring(
+          0,
+          1000
+        );
+    }
+
+    console.log(
+      "USER REPORT:",
+      {
+        reporter:
+          socketId,
+        reported:
+          partnerId,
+        reason
+      }
+    );
+
+    io.to(
+      socketId
+    ).emit(
+      "user-reported"
+    );
+  }
+);
+
+/* =====================================
+   NEXT
+===================================== */
+
+socket.on(
+  "next",
+  () => {
+    const oldPartner =
+      partners.get(
+        socketId
+      );
+
+    if (oldPartner) {
+      partners.delete(
+        socketId
+      );
+
+      partners.delete(
+        oldPartner
+      );
+
+      nextUsers.add(
+        socketId
+      );
+
+      nextUsers.add(
+        oldPartner
+      );
+
+      io.to(
+        oldPartner
+      ).emit(
+        "partner-left"
+      );
+
+      removeFromQueue(
+        socketId
+      );
+
+      removeFromQueue(
+        oldPartner
+      );
+    }
+
+    setTimeout(
+      () => {
+        if (
+          !onlineUsers.has(
+            socketId
+          )
+        ) {
+          return;
+        }
+
+        if (
+          partners.has(
+            socketId
+          )
+        ) {
+          return;
+        }
+
+        nextUsers.delete(
+          socketId
+        );
+
+        tryMatch(
+          socketId
+        );
+      },
+      NEXT_SEARCH_TIME
+    );
+
+    if (oldPartner) {
+      setTimeout(
+        () => {
+          if (
+            !onlineUsers.has(
+              oldPartner
+            )
+          ) {
+            return;
+          }
+
+          if (
+            partners.has(
+              oldPartner
+            )
+          ) {
+            return;
+          }
+
+          nextUsers.delete(
+            oldPartner
+          );
+
+          tryMatch(
+            oldPartner
+          );
+        },
+        NEXT_SEARCH_TIME
+      );
+    }
+  }
+);
+
+/* =====================================
+   STOP
+===================================== */
+
+socket.on(
+  "stop",
+  () => {
+    const partnerId =
+      partners.get(
+        socketId
+      );
+
+    if (partnerId) {
+      partners.delete(
+        socketId
+      );
+
+      partners.delete(
+        partnerId
+      );
+
+      if (
+        onlineUsers.has(
+          partnerId
+        )
+      ) {
+        io.to(
+          partnerId
+        ).emit(
+          "partner-left"
+        );
+      }
+    }
+
+    removeFromQueue(
+      socketId
+    );
+
+    nextUsers.delete(
+      socketId
+    );
+
+    socket.emit(
+      "stopped"
+    );
+  }
+);
+
+/* =====================================
+   DISCONNECT
+===================================== */
+
+socket.on(
+  "disconnect",
+  () => {
+    console.log(
+      "USER DISCONNECTED:",
+      socketId
+    );
+
+    onlineUsers.delete(
+      socketId
+    );
+
+    removeFromQueue(
+      socketId
+    );
+
+    nextUsers.delete(
+      socketId
+    );
+
+    const partnerId =
+      partners.get(
+        socketId
+      );
+
+    if (partnerId) {
+      partners.delete(
+        socketId
+      );
+
+      partners.delete(
+        partnerId
+      );
+
+      if (
+        onlineUsers.has(
+          partnerId
+        )
+      ) {
+        io.to(
+          partnerId
+        ).emit(
+          "partner-left"
+        );
+
+        setTimeout(
+          () => {
+            if (
+              onlineUsers.has(
+                partnerId
+              ) &&
+              !partners.has(
+                partnerId
+              )
+            ) {
+              tryMatch(
+                partnerId
+              );
+            }
+          },
+          1000
+        );
+      }
+    }
+
+    previousPartner.delete(
+      socketId
+    );
+
+    broadcastOnlineCount();
+  }
+);
 ```
 
-});
-});
+}
+);
 
 /* =========================================
 CLEAN OLD RECENT PAIRS
 ========================================= */
 
-setInterval(() => {
-const now = Date.now();
+setInterval(
+() => {
+const now =
+Date.now();
 
+```
 for (
-const [key, time]
-of recentPairs.entries()
+  const [
+    key,
+    time
+  ] of recentPairs.entries()
 ) {
-if (
-now - time >
-PAIR_COOLDOWN
-) {
-recentPairs.delete(key);
+  if (
+    now - time >
+    PAIR_COOLDOWN
+  ) {
+    recentPairs.delete(
+      key
+    );
+  }
 }
-}
-}, 60 * 1000);
+```
+
+},
+60 * 1000
+);
 
 /* =========================================
 CLEAN WAITING QUEUE
 ========================================= */
 
-setInterval(() => {
+setInterval(
+() => {
 cleanQueue();
-}, 10 * 1000);
+},
+10 * 1000
+);
 
 /* =========================================
 SERVER START
