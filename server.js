@@ -786,10 +786,3 @@ console.log(
 
 }
 );
-
-````
-
-**ध्यान दें:** ऊपर code के अंदर कोई ` ```javascript ` या आखिरी ` ``` ` नहीं लगाना है। सीधे `const express = require("express");` से शुरू होना चाहिए।
-
-फिर **Commit changes** करें और Render को deploy होने दें।
-````
