@@ -51,6 +51,35 @@ app.get("/articles", (req, res) => {
 
 
 /* =========================================
+   INFORMATION PAGES
+========================================= */
+
+app.get("/about", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "about.html")
+  );
+});
+
+app.get("/contact", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "contact.html")
+  );
+});
+
+app.get("/privacy", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "privacy.html")
+  );
+});
+
+app.get("/terms", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "terms.html")
+  );
+});
+
+
+/* =========================================
    SITEMAP
 ========================================= */
 
