@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
+  <!-- Main Pages -->
+
   <url>
     <loc>https://qmegle.onrender.com/</loc>
   </url>
@@ -25,9 +27,13 @@
     <loc>https://qmegle.onrender.com/omegle-alternative</loc>
   </url>
 
+  <!-- Articles Index -->
+
   <url>
     <loc>https://qmegle.onrender.com/articles/</loc>
   </url>
+
+  <!-- Existing Articles -->
 
   <url>
     <loc>https://qmegle.onrender.com/articles/random-chat-complete-safety-checklist.html</loc>
@@ -67,10 +73,6 @@
 
   <url>
     <loc>https://qmegle.onrender.com/articles/online-naye-dost-kaise-banaye.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/kya-kar-rahe-ho-se-aage-baat-kaise-shuru-kare.html</loc>
   </url>
 
   <url>
@@ -147,6 +149,78 @@
 
   <url>
     <loc>https://qmegle.onrender.com/articles/strangers-se-baat-karne-me-jhijhak.html</loc>
+  </url>
+
+  <!-- New Articles -->
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-chat-ai-bot-kaise-pahchane.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/ai-fake-profile-ko-kaise-pahchane.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/fake-online-friend-ko-kaise-pahchane.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-chat-scam-ki-shuruaat-kaise-hoti-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-chat-scam-ki-shuruaat-10-warning-signs.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-dosti-catfishing-kya-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-chat-insaan-ya-ai-bot.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/deepfake-photo-asli-photo-me-fark-kaise-pahchane.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-dosti-me-catfishing-kya-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/ai-fake-profile-pahchanne-ke-tarike.html</loc>
+  </url>
+
+  <!-- Articles 43-50 -->
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-chat-otp-upi-bank-details-kyon-nahi-dena-chahiye.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-kisi-ki-identity-verify-kaise-kare-bina-privacy-tode.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/video-chat-me-koi-aapki-recording-kar-raha-ho-to-kya-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/stranger-se-baat-karte-samay-red-flags-15-sanket.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-baatcheet-me-manipulation-ko-kaise-pahchane.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/love-bombing-kya-hai-online-friendship-me-kaise-pahchane.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/akelaapan-mehsoos-ho-to-naye-logon-se-baat-kaise-shuru-kare.html</loc>
   </url>
 
 </urlset>
