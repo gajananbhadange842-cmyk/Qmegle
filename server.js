@@ -1,4 +1,3 @@
-```javascript
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -8,159 +7,162 @@ const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+cors: {
+origin: "*",
+methods: ["GET", "POST"]
+}
 });
 
 const PORT = process.env.PORT || 3000;
 
 /* =========================================
-   EXPRESS
+EXPRESS
 ========================================= */
 
 app.use(express.json());
 
 /*
-   Serve the complete Qmegle project folder.
-   This also allows /articles/*.html files
-   to be opened directly.
+Serve the complete Qmegle project folder.
+This also allows /articles/*.html files
+to be opened directly.
 */
 app.use(express.static(__dirname));
 
 /* =========================================
-   MAIN PAGE
+MAIN PAGE
 ========================================= */
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+res.sendFile(path.join(__dirname, "index.html"));
 });
 
 /* =========================================
-   ARTICLES HOME
+ARTICLES HOME
 ========================================= */
 
 app.get("/articles", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "articles", "index.html")
-  );
+res.sendFile(
+path.join(__dirname, "articles", "index.html")
+);
 });
 
 app.get("/articles/", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "articles", "index.html")
-  );
+res.sendFile(
+path.join(__dirname, "articles", "index.html")
+);
 });
 
 /* =========================================
-   SITEMAP
+SITEMAP
 ========================================= */
 
 app.get("/sitemap.xml", (req, res) => {
-  res.type("application/xml");
-  res.sendFile(
-    path.join(__dirname, "sitemap.xml")
-  );
+res.type("application/xml");
+res.sendFile(
+path.join(__dirname, "sitemap.xml")
+);
 });
 
 /* =========================================
-   ARTICLE DETAIL
+ARTICLE DETAIL
 ========================================= */
 
 /*
-   Example:
+Example:
 
-   /articles/online-naye-insaan-se-kya-baat-kare.html
+/articles/online-naye-insaan-se-kya-baat-kare.html
 
-   will open:
+will open:
 
-   articles/online-naye-insaan-se-kya-baat-kare.html
+articles/online-naye-insaan-se-kya-baat-kare.html
 */
 
 app.get("/articles/:article", (req, res) => {
-  const article = req.params.article;
+const article = req.params.article;
 
-  /*
-     Basic security:
-     Only allow HTML files.
-  */
-  if (!article.endsWith(".html")) {
-    return res.status(404).send("Article not found");
+/*
+Basic security:
+Only allow HTML files.
+*/
+if (!article.endsWith(".html")) {
+return res.status(404).send("Article not found");
+}
+
+/*
+Prevent directory traversal.
+*/
+if (
+article.includes("/") ||
+article.includes("\") ||
+article.includes("..")
+) {
+return res.status(404).send("Article not found");
+}
+
+const articlePath = path.join(
+__dirname,
+"articles",
+article
+);
+
+res.sendFile(articlePath, (err) => {
+if (err) {
+console.log(
+"ARTICLE NOT FOUND:",
+article
+);
+
+```
+  if (!res.headersSent) {
+    res.status(404).send("Article not found");
   }
+}
+```
 
-  /*
-     Prevent directory traversal.
-  */
-  if (
-    article.includes("/") ||
-    article.includes("\\") ||
-    article.includes("..")
-  ) {
-    return res.status(404).send("Article not found");
-  }
-
-  const articlePath = path.join(
-    __dirname,
-    "articles",
-    article
-  );
-
-  res.sendFile(articlePath, (err) => {
-    if (err) {
-      console.log(
-        "ARTICLE NOT FOUND:",
-        article
-      );
-
-      if (!res.headersSent) {
-        res.status(404).send("Article not found");
-      }
-    }
-  });
+});
 });
 
 /* =========================================
-   HEALTH CHECK
+HEALTH CHECK
 ========================================= */
 
 app.get("/health", (req, res) => {
-  res.status(200).send("Qmegle server is running");
+res.status(200).send("Qmegle server is running");
 });
 
 /* =========================================
-   ONLINE USERS API
+ONLINE USERS API
 ========================================= */
 
 app.get("/api/online", (req, res) => {
-  res.json({
-    online: onlineUsers.size
-  });
+res.json({
+online: onlineUsers.size
+});
 });
 
 /* =========================================
-   SEO PAGES
+SEO PAGES
 ========================================= */
 
 const seoPages = [
-  "random-video-chat",
-  "free-video-chat",
-  "chat-with-strangers",
-  "random-text-chat",
-  "omegle-alternative",
-  "free-random-chat"
+"random-video-chat",
+"free-video-chat",
+"chat-with-strangers",
+"random-text-chat",
+"omegle-alternative",
+"free-random-chat"
 ];
 
 seoPages.forEach((page) => {
-  app.get("/" + page, (req, res) => {
-    res.sendFile(
-      path.join(__dirname, page + ".html")
-    );
-  });
+app.get("/" + page, (req, res) => {
+res.sendFile(
+path.join(__dirname, page + ".html")
+);
+});
 });
 
 /* =========================================
-   USERS / MATCHING
+USERS / MATCHING
 ========================================= */
 
 const waitingQueue = [];
@@ -174,581 +176,620 @@ const PAIR_COOLDOWN = 5 * 60 * 1000;
 const NEXT_SEARCH_TIME = 2000;
 
 /* =========================================
-   PAIR KEY
+PAIR KEY
 ========================================= */
 
 function pairKey(a, b) {
-  return [a, b].sort().join(":");
+return [a, b].sort().join(":");
 }
 
 /* =========================================
-   RECENT PAIR CHECK
+RECENT PAIR CHECK
 ========================================= */
 
 function isRecentPair(a, b) {
-  const key = pairKey(a, b);
-  const time = recentPairs.get(key);
+const key = pairKey(a, b);
+const time = recentPairs.get(key);
 
-  if (!time) {
-    return false;
-  }
+if (!time) {
+return false;
+}
 
-  if (Date.now() - time > PAIR_COOLDOWN) {
-    recentPairs.delete(key);
-    return false;
-  }
+if (Date.now() - time > PAIR_COOLDOWN) {
+recentPairs.delete(key);
+return false;
+}
 
-  return true;
+return true;
 }
 
 /* =========================================
-   REMEMBER PAIR
+REMEMBER PAIR
 ========================================= */
 
 function rememberPair(a, b) {
-  recentPairs.set(
-    pairKey(a, b),
-    Date.now()
-  );
+recentPairs.set(
+pairKey(a, b),
+Date.now()
+);
 }
 
 /* =========================================
-   REMOVE FROM QUEUE
+REMOVE FROM QUEUE
 ========================================= */
 
 function removeFromQueue(socketId) {
-  let index;
+let index;
 
-  while (
-    (index = waitingQueue.indexOf(socketId)) !== -1
-  ) {
-    waitingQueue.splice(index, 1);
-  }
+while (
+(index = waitingQueue.indexOf(socketId)) !== -1
+) {
+waitingQueue.splice(index, 1);
+}
 }
 
 /* =========================================
-   ADD TO QUEUE
+ADD TO QUEUE
 ========================================= */
 
 function addToQueue(socketId) {
-  if (!onlineUsers.has(socketId)) {
-    return false;
-  }
+if (!onlineUsers.has(socketId)) {
+return false;
+}
 
-  if (partners.has(socketId)) {
-    return false;
-  }
+if (partners.has(socketId)) {
+return false;
+}
 
-  if (waitingQueue.includes(socketId)) {
-    return false;
-  }
+if (waitingQueue.includes(socketId)) {
+return false;
+}
 
-  waitingQueue.push(socketId);
+waitingQueue.push(socketId);
 
-  console.log(
-    "Added to waiting queue:",
-    socketId
-  );
+console.log(
+"Added to waiting queue:",
+socketId
+);
 
-  return true;
+return true;
 }
 
 /* =========================================
-   CLEAN QUEUE
+CLEAN QUEUE
 ========================================= */
 
 function cleanQueue() {
-  for (
-    let i = waitingQueue.length - 1;
-    i >= 0;
-    i--
-  ) {
-    const id = waitingQueue[i];
+for (
+let i = waitingQueue.length - 1;
+i >= 0;
+i--
+) {
+const id = waitingQueue[i];
 
-    if (
-      !onlineUsers.has(id) ||
-      partners.has(id)
-    ) {
-      waitingQueue.splice(i, 1);
-    }
-  }
+```
+if (
+  !onlineUsers.has(id) ||
+  partners.has(id)
+) {
+  waitingQueue.splice(i, 1);
+}
+```
+
+}
 }
 
 /* =========================================
-   FIND BEST STRANGER
+FIND BEST STRANGER
 ========================================= */
 
 function findBestStranger(socketId) {
-  cleanQueue();
+cleanQueue();
 
-  const oldPartner =
-    previousPartner.get(socketId);
+const oldPartner =
+previousPartner.get(socketId);
 
-  /* First try someone who is not a recent partner */
+/* First try someone who is not a recent partner */
 
-  for (const candidate of waitingQueue) {
-    if (candidate === socketId) {
-      continue;
-    }
+for (const candidate of waitingQueue) {
+if (candidate === socketId) {
+continue;
+}
 
-    if (!onlineUsers.has(candidate)) {
-      continue;
-    }
+```
+if (!onlineUsers.has(candidate)) {
+  continue;
+}
 
-    if (partners.has(candidate)) {
-      continue;
-    }
+if (partners.has(candidate)) {
+  continue;
+}
 
-    if (candidate === oldPartner) {
-      continue;
-    }
+if (candidate === oldPartner) {
+  continue;
+}
 
-    if (!isRecentPair(socketId, candidate)) {
-      return candidate;
-    }
-  }
+if (!isRecentPair(socketId, candidate)) {
+  return candidate;
+}
+```
 
-  /* Second try any available stranger */
+}
 
-  for (const candidate of waitingQueue) {
-    if (candidate === socketId) {
-      continue;
-    }
+/* Second try any available stranger */
 
-    if (!onlineUsers.has(candidate)) {
-      continue;
-    }
+for (const candidate of waitingQueue) {
+if (candidate === socketId) {
+continue;
+}
 
-    if (partners.has(candidate)) {
-      continue;
-    }
+```
+if (!onlineUsers.has(candidate)) {
+  continue;
+}
 
-    if (candidate === oldPartner) {
-      continue;
-    }
+if (partners.has(candidate)) {
+  continue;
+}
 
-    return candidate;
-  }
+if (candidate === oldPartner) {
+  continue;
+}
 
-  return null;
+return candidate;
+```
+
+}
+
+return null;
 }
 
 /* =========================================
-   MATCH USERS
+MATCH USERS
 ========================================= */
 
 function matchUsers(userA, userB) {
-  if (userA === userB) {
-    return false;
-  }
+if (userA === userB) {
+return false;
+}
 
-  if (
-    !onlineUsers.has(userA) ||
-    !onlineUsers.has(userB)
-  ) {
-    return false;
-  }
+if (
+!onlineUsers.has(userA) ||
+!onlineUsers.has(userB)
+) {
+return false;
+}
 
-  if (
-    partners.has(userA) ||
-    partners.has(userB)
-  ) {
-    return false;
-  }
+if (
+partners.has(userA) ||
+partners.has(userB)
+) {
+return false;
+}
 
-  removeFromQueue(userA);
-  removeFromQueue(userB);
+removeFromQueue(userA);
+removeFromQueue(userB);
 
-  nextUsers.delete(userA);
-  nextUsers.delete(userB);
+nextUsers.delete(userA);
+nextUsers.delete(userB);
 
-  partners.set(userA, userB);
-  partners.set(userB, userA);
+partners.set(userA, userB);
+partners.set(userB, userA);
 
-  previousPartner.set(userA, userB);
-  previousPartner.set(userB, userA);
+previousPartner.set(userA, userB);
+previousPartner.set(userB, userA);
 
-  rememberPair(userA, userB);
+rememberPair(userA, userB);
 
-  io.to(userA).emit("matched", {
-    partnerId: userB,
-    initiator: true
-  });
+io.to(userA).emit("matched", {
+partnerId: userB,
+initiator: true
+});
 
-  io.to(userB).emit("matched", {
-    partnerId: userA,
-    initiator: false
-  });
+io.to(userB).emit("matched", {
+partnerId: userA,
+initiator: false
+});
 
-  console.log(
-    "MATCHED:",
-    userA,
-    "<->",
-    userB
-  );
+console.log(
+"MATCHED:",
+userA,
+"<->",
+userB
+);
 
-  return true;
+return true;
 }
 
 /* =========================================
-   TRY MATCH
+TRY MATCH
 ========================================= */
 
 function tryMatch(socketId) {
-  if (!onlineUsers.has(socketId)) {
-    return false;
-  }
+if (!onlineUsers.has(socketId)) {
+return false;
+}
 
-  if (partners.has(socketId)) {
-    return false;
-  }
+if (partners.has(socketId)) {
+return false;
+}
 
-  removeFromQueue(socketId);
+removeFromQueue(socketId);
 
-  const stranger =
-    findBestStranger(socketId);
+const stranger =
+findBestStranger(socketId);
 
-  if (stranger) {
-    return matchUsers(
-      socketId,
-      stranger
-    );
-  }
+if (stranger) {
+return matchUsers(
+socketId,
+stranger
+);
+}
 
-  addToQueue(socketId);
+addToQueue(socketId);
 
-  io.to(socketId).emit("waiting");
+io.to(socketId).emit("waiting");
 
-  return false;
+return false;
 }
 
 /* =========================================
-   ONLINE COUNT
+ONLINE COUNT
 ========================================= */
 
 function broadcastOnlineCount() {
-  const count = onlineUsers.size;
+const count = onlineUsers.size;
 
-  io.emit("online-count", {
-    online: count
-  });
+io.emit("online-count", {
+online: count
+});
 
-  console.log(
-    "Online users:",
-    count
-  );
+console.log(
+"Online users:",
+count
+);
 }
 
 /* =========================================
-   SOCKET CONNECTION
+SOCKET CONNECTION
 ========================================= */
 
 io.on("connection", (socket) => {
-  const socketId = socket.id;
+const socketId = socket.id;
 
-  console.log(
-    "USER CONNECTED:",
-    socketId
-  );
+console.log(
+"USER CONNECTED:",
+socketId
+);
 
-  onlineUsers.add(socketId);
+onlineUsers.add(socketId);
 
-  socket.emit("online-count", {
-    online: onlineUsers.size
-  });
-
-  broadcastOnlineCount();
-
-  /* =====================================
-     FIND PARTNER
-  ===================================== */
-
-  socket.on("find-partner", () => {
-    if (!onlineUsers.has(socketId)) {
-      return;
-    }
-
-    if (partners.has(socketId)) {
-      return;
-    }
-
-    tryMatch(socketId);
-  });
-
-  /* =====================================
-     WEBRTC SIGNAL
-  ===================================== */
-
-  socket.on("signal", (data) => {
-    if (!data) {
-      return;
-    }
-
-    const partnerId =
-      partners.get(socketId);
-
-    if (!partnerId) {
-      return;
-    }
-
-    io.to(partnerId).emit(
-      "signal",
-      data
-    );
-  });
-
-  /* =====================================
-     CHAT MESSAGE
-  ===================================== */
-
-  socket.on("chat-message", (data) => {
-    const partnerId =
-      partners.get(socketId);
-
-    if (!partnerId) {
-      return;
-    }
-
-    if (!data) {
-      return;
-    }
-
-    let message =
-      String(data.message || "").trim();
-
-    if (message.length > 2000) {
-      message =
-        message.substring(0, 2000);
-    }
-
-    if (!message) {
-      return;
-    }
-
-    io.to(partnerId).emit(
-      "chat-message",
-      {
-        message
-      }
-    );
-  });
-
-  /* =====================================
-     REPORT USER
-  ===================================== */
-
-  socket.on("report-user", (data) => {
-    const partnerId =
-      partners.get(socketId);
-
-    if (!partnerId) {
-      return;
-    }
-
-    let reason =
-      String(data?.reason || "").trim();
-
-    if (reason.length > 1000) {
-      reason =
-        reason.substring(0, 1000);
-    }
-
-    console.log(
-      "USER REPORT:",
-      {
-        reporter: socketId,
-        reported: partnerId,
-        reason
-      }
-    );
-
-    io.to(socketId).emit(
-      "user-reported"
-    );
-  });
-
-  /* =====================================
-     NEXT
-  ===================================== */
-
-  socket.on("next", () => {
-    const oldPartner =
-      partners.get(socketId);
-
-    if (oldPartner) {
-      partners.delete(socketId);
-      partners.delete(oldPartner);
-
-      nextUsers.add(socketId);
-      nextUsers.add(oldPartner);
-
-      io.to(oldPartner).emit(
-        "partner-left"
-      );
-
-      removeFromQueue(socketId);
-      removeFromQueue(oldPartner);
-    }
-
-    setTimeout(() => {
-      if (!onlineUsers.has(socketId)) {
-        return;
-      }
-
-      if (partners.has(socketId)) {
-        return;
-      }
-
-      nextUsers.delete(socketId);
-
-      tryMatch(socketId);
-    }, NEXT_SEARCH_TIME);
-
-    if (oldPartner) {
-      setTimeout(() => {
-        if (!onlineUsers.has(oldPartner)) {
-          return;
-        }
-
-        if (partners.has(oldPartner)) {
-          return;
-        }
-
-        nextUsers.delete(oldPartner);
-
-        tryMatch(oldPartner);
-      }, NEXT_SEARCH_TIME);
-    }
-  });
-
-  /* =====================================
-     STOP
-  ===================================== */
-
-  socket.on("stop", () => {
-    const partnerId =
-      partners.get(socketId);
-
-    if (partnerId) {
-      partners.delete(socketId);
-      partners.delete(partnerId);
-
-      if (onlineUsers.has(partnerId)) {
-        io.to(partnerId).emit(
-          "partner-left"
-        );
-      }
-    }
-
-    removeFromQueue(socketId);
-
-    nextUsers.delete(socketId);
-
-    socket.emit("stopped");
-  });
-
-  /* =====================================
-     DISCONNECT
-  ===================================== */
-
-  socket.on("disconnect", () => {
-    console.log(
-      "USER DISCONNECTED:",
-      socketId
-    );
-
-    onlineUsers.delete(socketId);
-
-    removeFromQueue(socketId);
-
-    nextUsers.delete(socketId);
-
-    const partnerId =
-      partners.get(socketId);
-
-    if (partnerId) {
-      partners.delete(socketId);
-      partners.delete(partnerId);
-
-      if (onlineUsers.has(partnerId)) {
-        io.to(partnerId).emit(
-          "partner-left"
-        );
-
-        setTimeout(() => {
-          if (
-            onlineUsers.has(partnerId) &&
-            !partners.has(partnerId)
-          ) {
-            tryMatch(partnerId);
-          }
-        }, 1000);
-      }
-    }
-
-    previousPartner.delete(socketId);
-
-    broadcastOnlineCount();
-  });
+socket.emit("online-count", {
+online: onlineUsers.size
 });
 
-/* =========================================
-   CLEAN OLD RECENT PAIRS
-========================================= */
+broadcastOnlineCount();
 
-setInterval(() => {
-  const now = Date.now();
+/* =====================================
+FIND PARTNER
+===================================== */
 
-  for (
-    const [key, time]
-    of recentPairs.entries()
-  ) {
-    if (
-      now - time >
-      PAIR_COOLDOWN
-    ) {
-      recentPairs.delete(key);
-    }
-  }
-}, 60 * 1000);
+socket.on("find-partner", () => {
+if (!onlineUsers.has(socketId)) {
+return;
+}
 
-/* =========================================
-   CLEAN WAITING QUEUE
-========================================= */
+```
+if (partners.has(socketId)) {
+  return;
+}
 
-setInterval(() => {
-  cleanQueue();
-}, 10 * 1000);
+tryMatch(socketId);
+```
 
-/* =========================================
-   SERVER START
-========================================= */
+});
 
-server.listen(
-  PORT,
-  "0.0.0.0",
-  () => {
-    console.log(
-      "===================================="
-    );
+/* =====================================
+WEBRTC SIGNAL
+===================================== */
 
-    console.log(
-      "       QMEGLE SERVER STARTED"
-    );
+socket.on("signal", (data) => {
+if (!data) {
+return;
+}
 
-    console.log(
-      "===================================="
-    );
+```
+const partnerId =
+  partners.get(socketId);
 
-    console.log(
-      "Port:",
-      PORT
-    );
+if (!partnerId) {
+  return;
+}
 
-    console.log(
-      "Online users:",
-      onlineUsers.size
-    );
+io.to(partnerId).emit(
+  "signal",
+  data
+);
+```
+
+});
+
+/* =====================================
+CHAT MESSAGE
+===================================== */
+
+socket.on("chat-message", (data) => {
+const partnerId =
+partners.get(socketId);
+
+```
+if (!partnerId) {
+  return;
+}
+
+if (!data) {
+  return;
+}
+
+let message =
+  String(data.message || "").trim();
+
+if (message.length > 2000) {
+  message =
+    message.substring(0, 2000);
+}
+
+if (!message) {
+  return;
+}
+
+io.to(partnerId).emit(
+  "chat-message",
+  {
+    message
   }
 );
 ```
+
+});
+
+/* =====================================
+REPORT USER
+===================================== */
+
+socket.on("report-user", (data) => {
+const partnerId =
+partners.get(socketId);
+
+```
+if (!partnerId) {
+  return;
+}
+
+let reason =
+  String(data?.reason || "").trim();
+
+if (reason.length > 1000) {
+  reason =
+    reason.substring(0, 1000);
+}
+
+console.log(
+  "USER REPORT:",
+  {
+    reporter: socketId,
+    reported: partnerId,
+    reason
+  }
+);
+
+io.to(socketId).emit(
+  "user-reported"
+);
+```
+
+});
+
+/* =====================================
+NEXT
+===================================== */
+
+socket.on("next", () => {
+const oldPartner =
+partners.get(socketId);
+
+```
+if (oldPartner) {
+  partners.delete(socketId);
+  partners.delete(oldPartner);
+
+  nextUsers.add(socketId);
+  nextUsers.add(oldPartner);
+
+  io.to(oldPartner).emit(
+    "partner-left"
+  );
+
+  removeFromQueue(socketId);
+  removeFromQueue(oldPartner);
+}
+
+setTimeout(() => {
+  if (!onlineUsers.has(socketId)) {
+    return;
+  }
+
+  if (partners.has(socketId)) {
+    return;
+  }
+
+  nextUsers.delete(socketId);
+
+  tryMatch(socketId);
+}, NEXT_SEARCH_TIME);
+
+if (oldPartner) {
+  setTimeout(() => {
+    if (!onlineUsers.has(oldPartner)) {
+      return;
+    }
+
+    if (partners.has(oldPartner)) {
+      return;
+    }
+
+    nextUsers.delete(oldPartner);
+
+    tryMatch(oldPartner);
+  }, NEXT_SEARCH_TIME);
+}
+```
+
+});
+
+/* =====================================
+STOP
+===================================== */
+
+socket.on("stop", () => {
+const partnerId =
+partners.get(socketId);
+
+```
+if (partnerId) {
+  partners.delete(socketId);
+  partners.delete(partnerId);
+
+  if (onlineUsers.has(partnerId)) {
+    io.to(partnerId).emit(
+      "partner-left"
+    );
+  }
+}
+
+removeFromQueue(socketId);
+
+nextUsers.delete(socketId);
+
+socket.emit("stopped");
+```
+
+});
+
+/* =====================================
+DISCONNECT
+===================================== */
+
+socket.on("disconnect", () => {
+console.log(
+"USER DISCONNECTED:",
+socketId
+);
+
+```
+onlineUsers.delete(socketId);
+
+removeFromQueue(socketId);
+
+nextUsers.delete(socketId);
+
+const partnerId =
+  partners.get(socketId);
+
+if (partnerId) {
+  partners.delete(socketId);
+  partners.delete(partnerId);
+
+  if (onlineUsers.has(partnerId)) {
+    io.to(partnerId).emit(
+      "partner-left"
+    );
+
+    setTimeout(() => {
+      if (
+        onlineUsers.has(partnerId) &&
+        !partners.has(partnerId)
+      ) {
+        tryMatch(partnerId);
+      }
+    }, 1000);
+  }
+}
+
+previousPartner.delete(socketId);
+
+broadcastOnlineCount();
+```
+
+});
+});
+
+/* =========================================
+CLEAN OLD RECENT PAIRS
+========================================= */
+
+setInterval(() => {
+const now = Date.now();
+
+for (
+const [key, time]
+of recentPairs.entries()
+) {
+if (
+now - time >
+PAIR_COOLDOWN
+) {
+recentPairs.delete(key);
+}
+}
+}, 60 * 1000);
+
+/* =========================================
+CLEAN WAITING QUEUE
+========================================= */
+
+setInterval(() => {
+cleanQueue();
+}, 10 * 1000);
+
+/* =========================================
+SERVER START
+========================================= */
+
+server.listen(
+PORT,
+"0.0.0.0",
+() => {
+console.log(
+"===================================="
+);
+
+```
+console.log(
+  "       QMEGLE SERVER STARTED"
+);
+
+console.log(
+  "===================================="
+);
+
+console.log(
+  "Port:",
+  PORT
+);
+
+console.log(
+  "Online users:",
+  onlineUsers.size
+);
+```
+
+}
+);
+
+````
+
+**ध्यान दें:** ऊपर code के अंदर कोई ` ```javascript ` या आखिरी ` ``` ` नहीं लगाना है। सीधे `const express = require("express");` से शुरू होना चाहिए।
+
+फिर **Commit changes** करें और Render को deploy होने दें।
+````
