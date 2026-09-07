@@ -21,11 +21,6 @@ EXPRESS
 
 app.use(express.json());
 
-/*
-Serve the complete Qmegle project folder.
-This also allows /articles/*.html files
-to be opened directly.
-*/
 app.use(express.static(__dirname));
 
 /* =========================================
@@ -53,47 +48,18 @@ path.join(__dirname, "articles", "index.html")
 });
 
 /* =========================================
-SITEMAP
-========================================= */
-
-app.get("/sitemap.xml", (req, res) => {
-res.type("application/xml");
-res.sendFile(
-path.join(__dirname, "sitemap.xml")
-);
-});
-
-/* =========================================
 ARTICLE DETAIL
 ========================================= */
-
-/*
-Example:
-
-/articles/online-naye-insaan-se-kya-baat-kare.html
-
-will open:
-
-articles/online-naye-insaan-se-kya-baat-kare.html
-*/
 
 app.get("/articles/:article", (req, res) => {
 const article = req.params.article;
 
-/*
-Basic security:
-Only allow HTML files.
-*/
 if (!article.endsWith(".html")) {
 return res.status(404).send("Article not found");
 }
 
-/*
-Prevent directory traversal.
-*/
 if (
 article.includes("/") ||
-article.includes("\") ||
 article.includes("..")
 ) {
 return res.status(404).send("Article not found");
@@ -107,10 +73,7 @@ article
 
 res.sendFile(articlePath, (err) => {
 if (err) {
-console.log(
-"ARTICLE NOT FOUND:",
-article
-);
+console.log("ARTICLE NOT FOUND:", article);
 
 ```
   if (!res.headersSent) {
@@ -120,6 +83,18 @@ article
 ```
 
 });
+});
+
+/* =========================================
+SITEMAP
+========================================= */
+
+app.get("/sitemap.xml", (req, res) => {
+res.type("application/xml");
+
+res.sendFile(
+path.join(__dirname, "sitemap.xml")
+);
 });
 
 /* =========================================
@@ -289,8 +264,6 @@ cleanQueue();
 const oldPartner =
 previousPartner.get(socketId);
 
-/* First try someone who is not a recent partner */
-
 for (const candidate of waitingQueue) {
 if (candidate === socketId) {
 continue;
@@ -315,8 +288,6 @@ if (!isRecentPair(socketId, candidate)) {
 ```
 
 }
-
-/* Second try any available stranger */
 
 for (const candidate of waitingQueue) {
 if (candidate === socketId) {
