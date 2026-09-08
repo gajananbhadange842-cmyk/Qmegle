@@ -2413,7 +2413,6 @@ function setStatus(message, type = "") {
 
 }
 
-
 socket.on("onlineUsers", (count) => {
 
   if (!onlineCount) return;
@@ -2421,6 +2420,7 @@ socket.on("onlineUsers", (count) => {
   onlineCount.textContent = Number(count) || 0;
 
 });
+
 
 
 socket.on("connect", () => {
