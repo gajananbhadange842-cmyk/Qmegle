@@ -1,1439 +1,579 @@
+// ==========================================
+// QMEGLE SERVER - RANDOM CHAT / VIDEO CHAT
+// Designed for high concurrent connections
+// ==========================================
+
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
 const path = require("path");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
 
-/* =========================================
-   SOCKET.IO
-========================================= */
-
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  },
-
-  transports: ["websocket", "polling"],
-
-  pingInterval: 25000,
-  pingTimeout: 20000,
-
-  maxHttpBufferSize: 1e6
-});
-
 const PORT = process.env.PORT || 3000;
 
-/* =========================================
-   EXPRESS
-========================================= */
+// ==========================================
+// EXPRESS SETTINGS
+// ==========================================
 
 app.disable("x-powered-by");
 
-app.use(
-  express.json({
-    limit: "100kb"
-  })
-);
+app.use(express.json({ limit: "50kb" }));
+app.use(express.urlencoded({ extended: false, limit: "50kb" }));
 
-app.use(express.static(__dirname));
+// Static files
+app.use(express.static(path.join(__dirname), {
+    extensions: ["html"],
+    maxAge: "1h"
+}));
 
-/* =========================================
-   MATCHING DATA
-========================================= */
+// ==========================================
+// SOCKET.IO
+// ==========================================
 
-const waitingQueue = [];
-const waitingSet = new Set();
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    },
 
+    transports: ["websocket", "polling"],
+
+    pingInterval: 25000,
+    pingTimeout: 60000,
+
+    maxHttpBufferSize: 100000
+});
+
+// ==========================================
+// USER MANAGEMENT
+// ==========================================
+
+// Waiting users
+const waitingUsers = [];
+
+// Current partners
 const partners = new Map();
-const previousPartner = new Map();
-const recentPairs = new Map();
 
-const onlineUsers = new Set();
+// Connected users
+let onlineUsers = 0;
 
-/* =========================================
-   SETTINGS
-========================================= */
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
 
-const PAIR_COOLDOWN = 5 * 60 * 1000;
+function removeFromWaiting(socketId) {
+    const index = waitingUsers.indexOf(socketId);
 
-const NEXT_SEARCH_TIME = 2000;
+    if (index !== -1) {
+        waitingUsers.splice(index, 1);
+        return true;
+    }
 
-const DISCONNECT_SEARCH_TIME = 1000;
+    return false;
+}
 
-const QUEUE_CLEAN_INTERVAL = 10000;
+function getPartner(socketId) {
+    return partners.get(socketId);
+}
 
-const RECENT_PAIR_CLEAN_INTERVAL = 60000;
+function setPartners(user1, user2) {
+    partners.set(user1, user2);
+    partners.set(user2, user1);
+}
 
-/* =========================================
-   RATE LIMIT SETTINGS
-========================================= */
+function removePartner(socketId) {
+    const partnerId = partners.get(socketId);
 
-const RATE_LIMITS = {
-  "find-partner": {
-    max: 10,
-    window: 10000
-  },
+    partners.delete(socketId);
 
-  next: {
-    max: 10,
-    window: 10000
-  },
+    if (partnerId) {
+        partners.delete(partnerId);
+    }
 
-  stop: {
-    max: 10,
-    window: 10000
-  },
+    return partnerId;
+}
 
-  "chat-message": {
-    max: 20,
-    window: 10000
-  },
+// ==========================================
+// FIND RANDOM PARTNER
+// ==========================================
 
-  "report-user": {
-    max: 5,
-    window: 60000
-  },
+function findPartner(socket) {
 
-  signal: {
-    max: 250,
-    window: 10000
-  }
-};
+    // Remove current user from waiting list first
+    removeFromWaiting(socket.id);
 
-const socketRateLimits = new Map();
+    // If already connected to someone
+    if (partners.has(socket.id)) {
+        return;
+    }
 
-/* =========================================
-   MAIN PAGE
-========================================= */
+    // Find available user
+    while (waitingUsers.length > 0) {
 
-app.get("/", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "index.html")
-  );
+        const partnerId = waitingUsers.shift();
+
+        // Ignore invalid socket
+        const partnerSocket = io.sockets.sockets.get(partnerId);
+
+        if (!partnerSocket) {
+            continue;
+        }
+
+        // Do not match with itself
+        if (partnerId === socket.id) {
+            continue;
+        }
+
+        // Do not match someone already connected
+        if (partners.has(partnerId)) {
+            continue;
+        }
+
+        // Create connection
+        setPartners(socket.id, partnerId);
+
+        // Tell both users
+        socket.emit("matched", {
+            partnerId: partnerId
+        });
+
+        partnerSocket.emit("matched", {
+            partnerId: socket.id
+        });
+
+        console.log(
+            `MATCH: ${socket.id} <--> ${partnerId}`
+        );
+
+        return;
+    }
+
+    // Nobody available
+    waitingUsers.push(socket.id);
+
+    socket.emit("waiting");
+
+    console.log(
+        `WAITING: ${socket.id} | Queue: ${waitingUsers.length}`
+    );
+}
+
+// ==========================================
+// SOCKET CONNECTION
+// ==========================================
+
+io.on("connection", (socket) => {
+
+    onlineUsers++;
+
+    console.log(
+        `CONNECTED: ${socket.id} | Online: ${onlineUsers}`
+    );
+
+    // Send current online users
+    socket.emit("onlineUsers", onlineUsers);
+
+    // Broadcast online count
+    io.emit("onlineUsers", onlineUsers);
+
+    // ======================================
+    // START CHAT
+    // ======================================
+
+    socket.on("start", () => {
+
+        findPartner(socket);
+
+    });
+
+    // Also support "startChat"
+    socket.on("startChat", () => {
+
+        findPartner(socket);
+
+    });
+
+    // ======================================
+    // NEXT USER
+    // ======================================
+
+    socket.on("next", () => {
+
+        const oldPartnerId = removePartner(socket.id);
+
+        removeFromWaiting(socket.id);
+
+        // Tell old partner
+        if (oldPartnerId) {
+
+            const oldPartner = io.sockets.sockets.get(oldPartnerId);
+
+            if (oldPartner) {
+
+                oldPartner.emit("partnerLeft");
+
+                // Put old partner back into queue
+                findPartner(oldPartner);
+            }
+        }
+
+        // Find new partner for current user
+        findPartner(socket);
+
+    });
+
+    // ======================================
+    // STOP CHAT
+    // ======================================
+
+    socket.on("stop", () => {
+
+        removeFromWaiting(socket.id);
+
+        const partnerId = removePartner(socket.id);
+
+        if (partnerId) {
+
+            const partner = io.sockets.sockets.get(partnerId);
+
+            if (partner) {
+                partner.emit("partnerLeft");
+            }
+        }
+
+        socket.emit("stopped");
+
+    });
+
+    // ======================================
+    // WEBRTC OFFER
+    // ======================================
+
+    socket.on("offer", (data) => {
+
+        const partnerId = partners.get(socket.id);
+
+        if (!partnerId) return;
+
+        const partner = io.sockets.sockets.get(partnerId);
+
+        if (!partner) return;
+
+        partner.emit("offer", {
+            offer: data.offer,
+            from: socket.id
+        });
+
+    });
+
+    // ======================================
+    // WEBRTC ANSWER
+    // ======================================
+
+    socket.on("answer", (data) => {
+
+        const partnerId = partners.get(socket.id);
+
+        if (!partnerId) return;
+
+        const partner = io.sockets.sockets.get(partnerId);
+
+        if (!partner) return;
+
+        partner.emit("answer", {
+            answer: data.answer,
+            from: socket.id
+        });
+
+    });
+
+    // ======================================
+    // WEBRTC ICE CANDIDATE
+    // ======================================
+
+    socket.on("ice-candidate", (data) => {
+
+        const partnerId = partners.get(socket.id);
+
+        if (!partnerId) return;
+
+        const partner = io.sockets.sockets.get(partnerId);
+
+        if (!partner) return;
+
+        partner.emit("ice-candidate", {
+            candidate: data.candidate,
+            from: socket.id
+        });
+
+    });
+
+    // Alternative ICE event name
+    socket.on("candidate", (data) => {
+
+        const partnerId = partners.get(socket.id);
+
+        if (!partnerId) return;
+
+        const partner = io.sockets.sockets.get(partnerId);
+
+        if (!partner) return;
+
+        partner.emit("candidate", {
+            candidate: data.candidate,
+            from: socket.id
+        });
+
+    });
+
+    // ======================================
+    // TEXT MESSAGE
+    // ======================================
+
+    socket.on("message", (message) => {
+
+        const partnerId = partners.get(socket.id);
+
+        if (!partnerId) return;
+
+        const partner = io.sockets.sockets.get(partnerId);
+
+        if (!partner) return;
+
+        // Limit message size
+        if (typeof message !== "string") return;
+
+        if (message.length > 2000) return;
+
+        partner.emit("message", message);
+
+    });
+
+    // Support chatMessage
+    socket.on("chatMessage", (message) => {
+
+        const partnerId = partners.get(socket.id);
+
+        if (!partnerId) return;
+
+        const partner = io.sockets.sockets.get(partnerId);
+
+        if (!partner) return;
+
+        if (typeof message !== "string") return;
+
+        if (message.length > 2000) return;
+
+        partner.emit("chatMessage", message);
+
+    });
+
+    // ======================================
+    // TYPING
+    // ======================================
+
+    socket.on("typing", () => {
+
+        const partnerId = partners.get(socket.id);
+
+        if (!partnerId) return;
+
+        const partner = io.sockets.sockets.get(partnerId);
+
+        if (partner) {
+            partner.emit("typing");
+        }
+
+    });
+
+    socket.on("stopTyping", () => {
+
+        const partnerId = partners.get(socket.id);
+
+        if (!partnerId) return;
+
+        const partner = io.sockets.sockets.get(partnerId);
+
+        if (partner) {
+            partner.emit("stopTyping");
+        }
+
+    });
+
+    // ======================================
+    // DISCONNECT
+    // ======================================
+
+    socket.on("disconnect", (reason) => {
+
+        onlineUsers--;
+
+        if (onlineUsers < 0) {
+            onlineUsers = 0;
+        }
+
+        console.log(
+            `DISCONNECTED: ${socket.id} | Reason: ${reason}`
+        );
+
+        // Remove from waiting queue
+        removeFromWaiting(socket.id);
+
+        // Remove partner
+        const partnerId = removePartner(socket.id);
+
+        // Notify partner
+        if (partnerId) {
+
+            const partner = io.sockets.sockets.get(partnerId);
+
+            if (partner) {
+
+                partner.emit("partnerLeft");
+
+                // Automatically search for another user
+                setTimeout(() => {
+
+                    if (
+                        io.sockets.sockets.has(partnerId) &&
+                        !partners.has(partnerId)
+                    ) {
+                        findPartner(partner);
+                    }
+
+                }, 500);
+            }
+        }
+
+        // Update online users
+        io.emit("onlineUsers", onlineUsers);
+
+    });
+
 });
 
-/* =========================================
-   ARTICLES
-========================================= */
-
-app.get("/articles", (req, res) => {
-  res.sendFile(
-    path.join(
-      __dirname,
-      "articles",
-      "index.html"
-    )
-  );
-});
-
-/* =========================================
-   INFORMATION PAGES
-========================================= */
-
-app.get("/about", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "about.html")
-  );
-});
-
-app.get("/contact", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "contact.html")
-  );
-});
-
-app.get("/privacy", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "privacy.html")
-  );
-});
-
-app.get("/terms", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "terms.html")
-  );
-});
-
-app.get("/community-guidelines", (req, res) => {
-  res.sendFile(
-    path.join(
-      __dirname,
-      "community-guidelines.html"
-    )
-  );
-});
-
-/* =========================================
-   SITEMAP
-========================================= */
-
-app.get("/sitemap.xml", (req, res) => {
-  res.type("application/xml");
-
-  res.sendFile(
-    path.join(__dirname, "sitemap.xml")
-  );
-});
-
-/* =========================================
-   HEALTH CHECK
-========================================= */
-
-app.get("/health", (req, res) => {
-  res.status(200).send(
-    "Qmegle server is running"
-  );
-});
-
-/* =========================================
-   ONLINE USERS API
-========================================= */
+// ==========================================
+// ONLINE USERS API
+// ==========================================
 
 app.get("/api/online", (req, res) => {
-  res.json({
-    online: onlineUsers.size
-  });
+
+    res.json({
+        online: onlineUsers
+    });
+
 });
 
-/* =========================================
-   SEO PAGES
-========================================= */
+// ==========================================
+// HEALTH CHECK
+// ==========================================
+
+app.get("/health", (req, res) => {
+
+    res.status(200).json({
+        status: "ok",
+        service: "Qmegle",
+        onlineUsers: onlineUsers,
+        waitingUsers: waitingUsers.length,
+        activeChats: partners.size / 2,
+        uptime: Math.floor(process.uptime())
+    });
+
+});
+
+// ==========================================
+// MAIN PAGE
+// ==========================================
+
+app.get("/", (req, res) => {
+
+    res.sendFile(
+        path.join(__dirname, "index.html")
+    );
+
+});
+
+// ==========================================
+// SEO PAGES
+// ==========================================
 
 const seoPages = [
-  "random-video-chat",
-  "free-video-chat",
-  "chat-with-strangers",
-  "random-text-chat",
-  "omegle-alternative",
-  "free-random-chat"
+    "about",
+    "contact",
+    "privacy",
+    "terms",
+    "free-video-chat",
+    "chat-with-strangers",
+    "random-text-chat",
+    "omegle-alternative",
+    "free-random-chat"
 ];
 
 seoPages.forEach((page) => {
 
-  app.get("/" + page, (req, res) => {
+    app.get(`/${page}`, (req, res) => {
 
-    res.sendFile(
-      path.join(
-        __dirname,
-        page + ".html"
-      )
-    );
+        const filePath = path.join(
+            __dirname,
+            `${page}.html`
+        );
 
-  });
+        res.sendFile(filePath, (err) => {
+
+            if (err) {
+                res.status(404).send("Page not found");
+            }
+
+        });
+
+    });
 
 });
 
-/* =========================================
-   PAIR KEY
-========================================= */
+// ==========================================
+// 404
+// ==========================================
 
-function pairKey(a, b) {
+app.use((req, res) => {
 
-  return [a, b]
-    .sort()
-    .join(":");
+    res.status(404).send("Page not found");
 
-}
+});
 
-/* =========================================
-   CHECK RECENT PAIR
-========================================= */
+// ==========================================
+// ERROR HANDLER
+// ==========================================
 
-function isRecentPair(a, b) {
+app.use((err, req, res, next) => {
 
-  const key = pairKey(a, b);
+    console.error("SERVER ERROR:", err);
 
-  const time = recentPairs.get(key);
+    res.status(500).json({
+        error: "Internal server error"
+    });
 
-  if (!time) {
-    return false;
-  }
+});
 
-  if (
-    Date.now() - time >
-    PAIR_COOLDOWN
-  ) {
+// ==========================================
+// START SERVER
+// ==========================================
 
-    recentPairs.delete(key);
+server.listen(PORT, "0.0.0.0", () => {
 
-    return false;
-  }
+    console.log("");
+    console.log("======================================");
+    console.log("        QMEGLE SERVER STARTED");
+    console.log("======================================");
+    console.log(`Port: ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || "production"}`);
+    console.log("Socket.IO: ENABLED");
+    console.log("WebRTC Signaling: ENABLED");
+    console.log("Random Matching: ENABLED");
+    console.log("Online Users: ENABLED");
+    console.log("Health Check: /health");
+    console.log("======================================");
+    console.log("");
 
-  return true;
-}
-
-/* =========================================
-   REMEMBER PAIR
-========================================= */
-
-function rememberPair(a, b) {
-
-  recentPairs.set(
-    pairKey(a, b),
-    Date.now()
-  );
-
-}
-
-/* =========================================
-   REMOVE USER FROM QUEUE
-========================================= */
-
-function removeFromQueue(socketId) {
-
-  if (!waitingSet.has(socketId)) {
-    return;
-  }
-
-  waitingSet.delete(socketId);
-
-  const index =
-    waitingQueue.indexOf(socketId);
-
-  if (index !== -1) {
-
-    waitingQueue.splice(
-      index,
-      1
-    );
-
-  }
-
-}
-
-/* =========================================
-   ADD USER TO QUEUE
-========================================= */
-
-function addToQueue(socketId) {
-
-  if (!onlineUsers.has(socketId)) {
-    return false;
-  }
-
-  if (partners.has(socketId)) {
-    return false;
-  }
-
-  if (waitingSet.has(socketId)) {
-    return false;
-  }
-
-  waitingQueue.push(socketId);
-
-  waitingSet.add(socketId);
-
-  return true;
-}
-
-/* =========================================
-   CLEAN QUEUE
-========================================= */
-
-function cleanQueue() {
-
-  for (
-    let i = waitingQueue.length - 1;
-    i >= 0;
-    i--
-  ) {
-
-    const id =
-      waitingQueue[i];
-
-    if (
-      !onlineUsers.has(id) ||
-      partners.has(id) ||
-      !waitingSet.has(id)
-    ) {
-
-      waitingQueue.splice(
-        i,
-        1
-      );
-
-      waitingSet.delete(id);
-    }
-
-  }
-
-}
-
-/* =========================================
-   CHECK AVAILABLE CANDIDATE
-========================================= */
-
-function isAvailableCandidate(
-  candidate,
-  socketId,
-  oldPartner
-) {
-
-  if (candidate === socketId) {
-    return false;
-  }
-
-  if (!onlineUsers.has(candidate)) {
-    return false;
-  }
-
-  if (partners.has(candidate)) {
-    return false;
-  }
-
-  if (candidate === oldPartner) {
-    return false;
-  }
-
-  return true;
-}
-
-/* =========================================
-   FIND BEST STRANGER
-========================================= */
-
-function findBestStranger(socketId) {
-
-  cleanQueue();
-
-  const oldPartner =
-    previousPartner.get(socketId);
-
-  /*
-     First try:
-     Do not immediately match
-     the same recent person.
-  */
-
-  for (
-    const candidate of waitingQueue
-  ) {
-
-    if (
-      !isAvailableCandidate(
-        candidate,
-        socketId,
-        oldPartner
-      )
-    ) {
-      continue;
-    }
-
-    if (
-      !isRecentPair(
-        socketId,
-        candidate
-      )
-    ) {
-
-      return candidate;
-    }
-
-  }
-
-  /*
-     Second try:
-     If nobody else is available,
-     match anyway instead of
-     making the user wait forever.
-  */
-
-  for (
-    const candidate of waitingQueue
-  ) {
-
-    if (
-      !isAvailableCandidate(
-        candidate,
-        socketId,
-        oldPartner
-      )
-    ) {
-      continue;
-    }
-
-    return candidate;
-  }
-
-  return null;
-}
-
-/* =========================================
-   MATCH TWO USERS
-========================================= */
-
-function matchUsers(
-  userA,
-  userB
-) {
-
-  if (userA === userB) {
-    return false;
-  }
-
-  if (
-    !onlineUsers.has(userA) ||
-    !onlineUsers.has(userB)
-  ) {
-
-    return false;
-  }
-
-  if (
-    partners.has(userA) ||
-    partners.has(userB)
-  ) {
-
-    return false;
-  }
-
-  removeFromQueue(userA);
-  removeFromQueue(userB);
-
-  partners.set(
-    userA,
-    userB
-  );
-
-  partners.set(
-    userB,
-    userA
-  );
-
-  previousPartner.set(
-    userA,
-    userB
-  );
-
-  previousPartner.set(
-    userB,
-    userA
-  );
-
-  rememberPair(
-    userA,
-    userB
-  );
-
-  io.to(userA).emit(
-    "matched",
-    {
-      partnerId: userB,
-      initiator: true
-    }
-  );
-
-  io.to(userB).emit(
-    "matched",
-    {
-      partnerId: userA,
-      initiator: false
-    }
-  );
-
-  console.log(
-    "MATCHED:",
-    userA,
-    "<->",
-    userB
-  );
-
-  return true;
-}
-
-/* =========================================
-   TRY MATCH
-========================================= */
-
-function tryMatch(socketId) {
-
-  if (!onlineUsers.has(socketId)) {
-    return false;
-  }
-
-  if (partners.has(socketId)) {
-    return false;
-  }
-
-  removeFromQueue(socketId);
-
-  const stranger =
-    findBestStranger(socketId);
-
-  if (stranger) {
-
-    return matchUsers(
-      socketId,
-      stranger
-    );
-
-  }
-
-  addToQueue(socketId);
-
-  io.to(socketId).emit(
-    "waiting"
-  );
-
-  return false;
-}
-
-/* =========================================
-   ONLINE COUNT
-========================================= */
-
-function broadcastOnlineCount() {
-
-  io.emit(
-    "online-count",
-    {
-      online:
-        onlineUsers.size
-    }
-  );
-
-  console.log(
-    "Online users:",
-    onlineUsers.size
-  );
-}
-
-/* =========================================
-   RATE LIMIT FUNCTION
-========================================= */
-
-function allowedByRateLimit(
-  socketId,
-  eventName
-) {
-
-  const config =
-    RATE_LIMITS[eventName];
-
-  if (!config) {
-    return true;
-  }
-
-  let limits =
-    socketRateLimits.get(
-      socketId
-    );
-
-  if (!limits) {
-
-    limits = new Map();
-
-    socketRateLimits.set(
-      socketId,
-      limits
-    );
-
-  }
-
-  const now =
-    Date.now();
-
-  let record =
-    limits.get(eventName);
-
-  if (
-    !record ||
-    now - record.start >=
-      config.window
-  ) {
-
-    record = {
-      start: now,
-      count: 0
-    };
-
-    limits.set(
-      eventName,
-      record
-    );
-
-  }
-
-  record.count++;
-
-  if (
-    record.count >
-    config.max
-  ) {
-
-    return false;
-  }
-
-  return true;
-}
-
-/* =========================================
-   SOCKET CONNECTION
-========================================= */
-
-io.on(
-  "connection",
-  (socket) => {
-
-    const socketId =
-      socket.id;
-
-    console.log(
-      "USER CONNECTED:",
-      socketId
-    );
-
-    onlineUsers.add(
-      socketId
-    );
-
-    socketRateLimits.set(
-      socketId,
-      new Map()
-    );
-
-    socket.emit(
-      "online-count",
-      {
-        online:
-          onlineUsers.size
-      }
-    );
-
-    broadcastOnlineCount();
-
-    /* =====================================
-       FIND PARTNER
-    ===================================== */
-
-    socket.on(
-      "find-partner",
-      () => {
-
-        if (
-          !allowedByRateLimit(
-            socketId,
-            "find-partner"
-          )
-        ) {
-          return;
-        }
-
-        if (
-          !onlineUsers.has(
-            socketId
-          )
-        ) {
-          return;
-        }
-
-        if (
-          partners.has(
-            socketId
-          )
-        ) {
-          return;
-        }
-
-        tryMatch(
-          socketId
-        );
-
-      }
-    );
-
-    /* =====================================
-       WEBRTC SIGNAL
-    ===================================== */
-
-    socket.on(
-      "signal",
-      (data) => {
-
-        if (
-          !allowedByRateLimit(
-            socketId,
-            "signal"
-          )
-        ) {
-          return;
-        }
-
-        if (
-          !data ||
-          typeof data !==
-            "object"
-        ) {
-          return;
-        }
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (!partnerId) {
-          return;
-        }
-
-        if (
-          !onlineUsers.has(
-            partnerId
-          )
-        ) {
-          return;
-        }
-
-        io.to(
-          partnerId
-        ).emit(
-          "signal",
-          data
-        );
-
-      }
-    );
-
-    /* =====================================
-       CHAT MESSAGE
-    ===================================== */
-
-    socket.on(
-      "chat-message",
-      (data) => {
-
-        if (
-          !allowedByRateLimit(
-            socketId,
-            "chat-message"
-          )
-        ) {
-          return;
-        }
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (
-          !partnerId ||
-          !onlineUsers.has(
-            partnerId
-          )
-        ) {
-          return;
-        }
-
-        if (
-          !data ||
-          typeof data !==
-            "object"
-        ) {
-          return;
-        }
-
-        let message =
-          String(
-            data.message || ""
-          ).trim();
-
-        if (
-          message.length >
-          2000
-        ) {
-
-          message =
-            message.substring(
-              0,
-              2000
-            );
-
-        }
-
-        if (!message) {
-          return;
-        }
-
-        io.to(
-          partnerId
-        ).emit(
-          "chat-message",
-          {
-            message
-          }
-        );
-
-      }
-    );
-
-    /* =====================================
-       REPORT USER
-    ===================================== */
-
-    socket.on(
-      "report-user",
-      (data) => {
-
-        if (
-          !allowedByRateLimit(
-            socketId,
-            "report-user"
-          )
-        ) {
-          return;
-        }
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (!partnerId) {
-          return;
-        }
-
-        let reason =
-          String(
-            data &&
-            data.reason
-              ? data.reason
-              : ""
-          ).trim();
-
-        if (
-          reason.length >
-          1000
-        ) {
-
-          reason =
-            reason.substring(
-              0,
-              1000
-            );
-
-        }
-
-        console.log(
-          "USER REPORT:",
-          {
-            reporter:
-              socketId,
-
-            reported:
-              partnerId,
-
-            reason
-          }
-        );
-
-        socket.emit(
-          "user-reported"
-        );
-
-      }
-    );
-
-    /* =====================================
-       NEXT USER
-    ===================================== */
-
-    socket.on(
-      "next",
-      () => {
-
-        if (
-          !allowedByRateLimit(
-            socketId,
-            "next"
-          )
-        ) {
-          return;
-        }
-
-        if (
-          !onlineUsers.has(
-            socketId
-          )
-        ) {
-          return;
-        }
-
-        const oldPartner =
-          partners.get(
-            socketId
-          );
-
-        if (oldPartner) {
-
-          partners.delete(
-            socketId
-          );
-
-          partners.delete(
-            oldPartner
-          );
-
-          removeFromQueue(
-            socketId
-          );
-
-          removeFromQueue(
-            oldPartner
-          );
-
-          if (
-            onlineUsers.has(
-              oldPartner
-            )
-          ) {
-
-            io.to(
-              oldPartner
-            ).emit(
-              "partner-left"
-            );
-
-          }
-
-        }
-
-        /*
-           Search for new partner
-           after 2 seconds.
-        */
-
-        setTimeout(
-          () => {
-
-            if (
-              !onlineUsers.has(
-                socketId
-              )
-            ) {
-              return;
-            }
-
-            if (
-              partners.has(
-                socketId
-              )
-            ) {
-              return;
-            }
-
-            tryMatch(
-              socketId
-            );
-
-          },
-          NEXT_SEARCH_TIME
-        );
-
-        /*
-           Also search for the
-           previous partner.
-        */
-
-        if (oldPartner) {
-
-          setTimeout(
-            () => {
-
-              if (
-                !onlineUsers.has(
-                  oldPartner
-                )
-              ) {
-                return;
-              }
-
-              if (
-                partners.has(
-                  oldPartner
-                )
-              ) {
-                return;
-              }
-
-              tryMatch(
-                oldPartner
-              );
-
-            },
-            NEXT_SEARCH_TIME
-          );
-
-        }
-
-      }
-    );
-
-    /* =====================================
-       STOP
-    ===================================== */
-
-    socket.on(
-      "stop",
-      () => {
-
-        if (
-          !allowedByRateLimit(
-            socketId,
-            "stop"
-          )
-        ) {
-          return;
-        }
-
-        if (
-          !onlineUsers.has(
-            socketId
-          )
-        ) {
-          return;
-        }
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (partnerId) {
-
-          partners.delete(
-            socketId
-          );
-
-          partners.delete(
-            partnerId
-          );
-
-          removeFromQueue(
-            socketId
-          );
-
-          removeFromQueue(
-            partnerId
-          );
-
-          if (
-            onlineUsers.has(
-              partnerId
-            )
-          ) {
-
-            io.to(
-              partnerId
-            ).emit(
-              "partner-left"
-            );
-
-          }
-
-        }
-
-        removeFromQueue(
-          socketId
-        );
-
-        socket.emit(
-          "stopped"
-        );
-
-      }
-    );
-
-    /* =====================================
-       DISCONNECT
-    ===================================== */
-
-    socket.on(
-      "disconnect",
-      (reason) => {
-
-        console.log(
-          "USER DISCONNECTED:",
-          socketId,
-          reason || ""
-        );
-
-        onlineUsers.delete(
-          socketId
-        );
-
-        removeFromQueue(
-          socketId
-        );
-
-        const partnerId =
-          partners.get(
-            socketId
-          );
-
-        if (partnerId) {
-
-          partners.delete(
-            socketId
-          );
-
-          partners.delete(
-            partnerId
-          );
-
-          if (
-            onlineUsers.has(
-              partnerId
-            )
-          ) {
-
-            io.to(
-              partnerId
-            ).emit(
-              "partner-left"
-            );
-
-            /*
-               Give remaining user
-               a new stranger.
-            */
-
-            setTimeout(
-              () => {
-
-                if (
-                  onlineUsers.has(
-                    partnerId
-                  ) &&
-                  !partners.has(
-                    partnerId
-                  )
-                ) {
-
-                  tryMatch(
-                    partnerId
-                  );
-
-                }
-
-              },
-              DISCONNECT_SEARCH_TIME
-            );
-
-          }
-
-        }
-
-        previousPartner.delete(
-          socketId
-        );
-
-        socketRateLimits.delete(
-          socketId
-        );
-
-        broadcastOnlineCount();
-
-      }
-    );
-
-  }
-);
-
-/* =========================================
-   CLEAN RECENT PAIRS
-========================================= */
-
-setInterval(
-  () => {
-
-    const now =
-      Date.now();
-
-    for (
-      const [
-        key,
-        time
-      ] of recentPairs.entries()
-    ) {
-
-      if (
-        now - time >
-        PAIR_COOLDOWN
-      ) {
-
-        recentPairs.delete(
-          key
-        );
-
-      }
-
-    }
-
-  },
-  RECENT_PAIR_CLEAN_INTERVAL
-);
-
-/* =========================================
-   CLEAN QUEUE
-========================================= */
-
-setInterval(
-  () => {
-
-    cleanQueue();
-
-  },
-  QUEUE_CLEAN_INTERVAL
-);
-
-/* =========================================
-   CLEAN RATE LIMIT MEMORY
-========================================= */
-
-setInterval(
-  () => {
-
-    const now =
-      Date.now();
-
-    for (
-      const [
-        socketId,
-        limits
-      ] of socketRateLimits.entries()
-    ) {
-
-      if (
-        !onlineUsers.has(
-          socketId
-        )
-      ) {
-
-        socketRateLimits.delete(
-          socketId
-        );
-
-        continue;
-      }
-
-      for (
-        const [
-          eventName,
-          record
-        ] of limits.entries()
-      ) {
-
-        const config =
-          RATE_LIMITS[eventName];
-
-        if (
-          !config ||
-          now - record.start >=
-            config.window * 2
-        ) {
-
-          limits.delete(
-            eventName
-          );
-
-        }
-
-      }
-
-    }
-
-  },
-  60000
-);
-
-/* =========================================
-   GRACEFUL SHUTDOWN
-========================================= */
-
-function shutdown(signal) {
-
-  console.log(
-    signal +
-    " received. Shutting down Qmegle..."
-  );
-
-  io.close(
-    () => {
-
-      server.close(
-        () => {
-
-          console.log(
-            "Qmegle server stopped."
-          );
-
-          process.exit(0);
-
-        }
-      );
-
-    }
-  );
-
-  setTimeout(
-    () => {
-
-      process.exit(1);
-
-    },
-    10000
-  ).unref();
-
-}
-
-process.on(
-  "SIGTERM",
-  () => {
-    shutdown("SIGTERM");
-  }
-);
-
-process.on(
-  "SIGINT",
-  () => {
-    shutdown("SIGINT");
-  }
-);
-
-/* =========================================
-   START SERVER
-========================================= */
-
-server.listen(
-  PORT,
-  "0.0.0.0",
-  () => {
-
-    console.log(
-      "===================================="
-    );
-
-    console.log(
-      "       QMEGLE SERVER STARTED"
-    );
-
-    console.log(
-      "===================================="
-    );
-
-    console.log(
-      "Port:",
-      PORT
-    );
-
-    console.log(
-      "Online users:",
-      onlineUsers.size
-    );
-
-  }
-);
+});
