@@ -27,11 +27,13 @@
     <loc>https://qmegle.onrender.com/omegle-alternative</loc>
   </url>
 
+
   <!-- Articles Index -->
 
   <url>
     <loc>https://qmegle.onrender.com/articles/</loc>
   </url>
+
 
   <!-- Existing Articles -->
 
@@ -136,10 +138,6 @@
   </url>
 
   <url>
-    <loc>https://qmegle.onrender.com/articles/chat-me-silence-ho-jaye-to-kya-kare.html</loc>
-  </url>
-
-  <url>
     <loc>https://qmegle.onrender.com/articles/online-naye-insaan-se-kya-baat-kare.html</loc>
   </url>
 
@@ -151,53 +149,8 @@
     <loc>https://qmegle.onrender.com/articles/strangers-se-baat-karne-me-jhijhak.html</loc>
   </url>
 
-  <!-- New Articles -->
 
-  <url>
-    <loc>https://qmegle.onrender.com/articles/online-chat-ai-bot-kaise-pahchane.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/ai-fake-profile-ko-kaise-pahchane.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/fake-online-friend-ko-kaise-pahchane.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/online-chat-scam-ki-shuruaat-kaise-hoti-hai.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/online-chat-scam-ki-shuruaat-10-warning-signs.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/online-dosti-catfishing-kya-hai.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/online-chat-insaan-ya-ai-bot.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/deepfake-photo-asli-photo-me-fark-kaise-pahchane.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/online-dosti-me-catfishing-kya-hai.html</loc>
-  </url>
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/ai-fake-profile-pahchanne-ke-tarike.html</loc>
-  </url>
-
-  <!-- Articles 43-50 -->
-
-  <url>
-    <loc>https://qmegle.onrender.com/articles/online-chat-otp-upi-bank-details-kyon-nahi-dena-chahiye.html</loc>
-  </url>
+  <!-- Latest Articles -->
 
   <url>
     <loc>https://qmegle.onrender.com/articles/online-kisi-ki-identity-verify-kaise-kare-bina-privacy-tode.html</loc>
