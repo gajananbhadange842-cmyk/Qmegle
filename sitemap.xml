@@ -1,7 +1,10 @@
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <!-- Main Pages -->
+  <!-- ========================= -->
+  <!-- Main Qmegle Pages -->
+  <!-- ========================= -->
 
   <url>
     <loc>https://qmegle.onrender.com/</loc>
@@ -27,15 +30,228 @@
     <loc>https://qmegle.onrender.com/omegle-alternative</loc>
   </url>
 
+  <url>
+    <loc>https://qmegle.onrender.com/free-random-chat</loc>
+  </url>
 
+
+  <!-- ========================= -->
   <!-- Articles Index -->
+  <!-- ========================= -->
 
   <url>
     <loc>https://qmegle.onrender.com/articles/</loc>
   </url>
 
 
-  <!-- Articles -->
+  <!-- ========================= -->
+  <!-- NEW 50 ARTICLES -->
+  <!-- ========================= -->
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/achhi-dosti-kaise-banti-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/naye-dost-se-personal-baat-kab-share-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/online-dosti-vs-real-life-dosti.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/naye-insan-par-bharosa-kab-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/dosti-mein-boundary-kaise-rakhe.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/bina-jhagda-asahmati-kaise-jataye.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/baat-beech-mein-kaatne-ki-aadat.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/sahi-sawal-poochkar-baatcheet-kaise-badhaye.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/pehli-mulaqat-mein-comfort-kyon-hota-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/achha-listener-kaise-bane.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/purani-dosti-toot-gayi-hai-naye-dost-kaise-banaye.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/dost-door-ho-raha-hai-iske-sanket.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/dost-reply-karna-band-kar-de-to-kya-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/hamesha-pehle-message-karna-ek-tarfa-dosti.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/sirf-kaam-par-yaad-karne-wala-dost.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/achha-dost-kaise-pehchane.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/nayi-dosti-feeki-kyon-pad-jati-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/baat-hoti-hai-lekin-dosti-kyon-nahi-banti.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/kisi-anjan-insan-se-dosti-kaise-shuru-hoti-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/dost-banana-itna-mushkil-kyon-lagta-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/naye-logon-ke-beech-comfortable-kaise-hone.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/baat-ke-baad-overthinking-kaise-kam-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/logon-ke-samne-bolne-ka-dar-kaise-kam-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/kam-bolne-wale-achhe-conversationalist-kaise-bane.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/confidence-kam-hai-to-logon-se-kaise-baat-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/apni-awaaz-sunkar-ajeeb-kyon-lagta-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/baat-karne-se-pehle-nervousness-kaise-kam-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/log-mere-bare-mein-kya-sochenge.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/sharmile-log-dost-kaise-banaye.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/ajnabi-logon-se-baat-karne-mein-dar-kyon-lagta-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/awkward-silence-ko-kaise-bachaye.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/natural-baatcheet-kaise-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/ajnabi-se-kya-poochen-taaki-baat-shuru-ho.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/naye-insan-se-baat-karne-ke-topics.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/samne-wala-sirf-haan-na-bole-to-kya-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/baatcheet-2-minute-mein-khatam-kyon-hoti-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/hi-ke-baad-baat-kaise-aage-badhaye.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/samne-baithe-insan-se-kya-bolen.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/baat-karte-samay-dimag-khali-kyon-ho-jata-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/ajnabi-insan-se-pehli-baar-kya-bolen.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/sirf-1-2-dost-hain-to-chinta-na-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/ghar-se-door-dost-nahi-ban-rahe.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/naye-shahar-mein-koi-apna-nahi-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/10-minute-baat-ke-baad-man-halka-kyon-hota-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/ajnabi-se-baat-karne-ka-man-kyon-karta-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/man-ki-baat-kahne-wala-koi-nahi-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/akele-rehna-bura-nahi-hai-lekin-akelapan-kab-samasya-banta-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/dost-bahut-hain-phir-bhi-man-akela-kyon-rehta-hai.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/jab-baat-karne-ke-liye-koi-na-ho-to-kya-kare.html</loc>
+  </url>
+
+  <url>
+    <loc>https://qmegle.onrender.com/articles/sabke-beech-rehkar-bhi-akelapan-kyon-lagta-hai.html</loc>
+  </url>
+
+
+  <!-- ========================= -->
+  <!-- OLD ARTICLES -->
+  <!-- ========================= -->
 
   <url>
     <loc>https://qmegle.onrender.com/articles/random-chat-complete-safety-checklist.html</loc>
@@ -174,3 +390,4 @@
   </url>
 
 </urlset>
+```
