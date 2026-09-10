@@ -1,3 +1,4 @@
+```javascript
 // ==========================================
 // QMEGLE SERVER - RANDOM CHAT / VIDEO CHAT
 // Designed for high concurrent connections
@@ -6,6 +7,7 @@
 const express = require("express");
 const http = require("http");
 const path = require("path");
+const fs = require("fs");
 const { Server } = require("socket.io");
 
 const app = express();
@@ -22,7 +24,66 @@ app.disable("x-powered-by");
 app.use(express.json({ limit: "50kb" }));
 app.use(express.urlencoded({ extended: false, limit: "50kb" }));
 
-// Static files
+// ==========================================
+// SITEMAP.XML
+// ==========================================
+
+app.get("/sitemap.xml", (req, res) => {
+
+    const sitemapPath = path.join(__dirname, "sitemap.xml");
+
+    fs.readFile(sitemapPath, "utf8", (err, data) => {
+
+        if (err) {
+
+            console.error("SITEMAP ERROR:", err);
+
+            return res
+                .status(404)
+                .type("text/plain")
+                .send("Sitemap not found");
+
+        }
+
+        res.status(200);
+
+        res.set(
+            "Content-Type",
+            "application/xml; charset=utf-8"
+        );
+
+        res.send(data);
+
+    });
+
+});
+
+// ==========================================
+// ROBOTS.TXT
+// ==========================================
+
+app.get("/robots.txt", (req, res) => {
+
+    res.status(200);
+
+    res.set(
+        "Content-Type",
+        "text/plain; charset=utf-8"
+    );
+
+    res.send(
+`User-agent: *
+Allow: /
+
+Sitemap: https://qmegle.onrender.com/sitemap.xml`
+    );
+
+});
+
+// ==========================================
+// STATIC FILES
+// ==========================================
+
 app.use(express.static(path.join(__dirname), {
     extensions: ["html"],
     maxAge: "1h"
@@ -33,6 +94,7 @@ app.use(express.static(path.join(__dirname), {
 // ==========================================
 
 const io = new Server(server, {
+
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
@@ -41,9 +103,11 @@ const io = new Server(server, {
     transports: ["websocket", "polling"],
 
     pingInterval: 25000,
+
     pingTimeout: 60000,
 
     maxHttpBufferSize: 100000
+
 });
 
 // ==========================================
@@ -64,10 +128,13 @@ let onlineUsers = 0;
 // ==========================================
 
 function removeFromWaiting(socketId) {
+
     const index = waitingUsers.indexOf(socketId);
 
     if (index !== -1) {
+
         waitingUsers.splice(index, 1);
+
         return true;
     }
 
@@ -75,24 +142,33 @@ function removeFromWaiting(socketId) {
 }
 
 function getPartner(socketId) {
+
     return partners.get(socketId);
+
 }
 
 function setPartners(user1, user2) {
+
     partners.set(user1, user2);
+
     partners.set(user2, user1);
+
 }
 
 function removePartner(socketId) {
+
     const partnerId = partners.get(socketId);
 
     partners.delete(socketId);
 
     if (partnerId) {
+
         partners.delete(partnerId);
+
     }
 
     return partnerId;
+
 }
 
 // ==========================================
@@ -106,7 +182,9 @@ function findPartner(socket) {
 
     // If already connected to someone
     if (partners.has(socket.id)) {
+
         return;
+
     }
 
     // Find available user
@@ -115,20 +193,27 @@ function findPartner(socket) {
         const partnerId = waitingUsers.shift();
 
         // Ignore invalid socket
-        const partnerSocket = io.sockets.sockets.get(partnerId);
+        const partnerSocket =
+            io.sockets.sockets.get(partnerId);
 
         if (!partnerSocket) {
+
             continue;
+
         }
 
         // Do not match with itself
         if (partnerId === socket.id) {
+
             continue;
+
         }
 
         // Do not match someone already connected
         if (partners.has(partnerId)) {
+
             continue;
+
         }
 
         // Create connection
@@ -136,11 +221,15 @@ function findPartner(socket) {
 
         // Tell both users
         socket.emit("matched", {
+
             partnerId: partnerId
+
         });
 
         partnerSocket.emit("matched", {
+
             partnerId: socket.id
+
         });
 
         console.log(
@@ -148,6 +237,7 @@ function findPartner(socket) {
         );
 
         return;
+
     }
 
     // Nobody available
@@ -158,6 +248,7 @@ function findPartner(socket) {
     console.log(
         `WAITING: ${socket.id} | Queue: ${waitingUsers.length}`
     );
+
 }
 
 // ==========================================
@@ -173,10 +264,16 @@ io.on("connection", (socket) => {
     );
 
     // Send current online users
-    socket.emit("onlineUsers", onlineUsers);
+    socket.emit(
+        "onlineUsers",
+        onlineUsers
+    );
 
     // Broadcast online count
-    io.emit("onlineUsers", onlineUsers);
+    io.emit(
+        "onlineUsers",
+        onlineUsers
+    );
 
     // ======================================
     // START CHAT
@@ -201,14 +298,16 @@ io.on("connection", (socket) => {
 
     socket.on("next", () => {
 
-        const oldPartnerId = removePartner(socket.id);
+        const oldPartnerId =
+            removePartner(socket.id);
 
         removeFromWaiting(socket.id);
 
         // Tell old partner
         if (oldPartnerId) {
 
-            const oldPartner = io.sockets.sockets.get(oldPartnerId);
+            const oldPartner =
+                io.sockets.sockets.get(oldPartnerId);
 
             if (oldPartner) {
 
@@ -216,7 +315,9 @@ io.on("connection", (socket) => {
 
                 // Put old partner back into queue
                 findPartner(oldPartner);
+
             }
+
         }
 
         // Find new partner for current user
@@ -232,15 +333,20 @@ io.on("connection", (socket) => {
 
         removeFromWaiting(socket.id);
 
-        const partnerId = removePartner(socket.id);
+        const partnerId =
+            removePartner(socket.id);
 
         if (partnerId) {
 
-            const partner = io.sockets.sockets.get(partnerId);
+            const partner =
+                io.sockets.sockets.get(partnerId);
 
             if (partner) {
+
                 partner.emit("partnerLeft");
+
             }
+
         }
 
         socket.emit("stopped");
@@ -253,17 +359,22 @@ io.on("connection", (socket) => {
 
     socket.on("offer", (data) => {
 
-        const partnerId = partners.get(socket.id);
+        const partnerId =
+            partners.get(socket.id);
 
         if (!partnerId) return;
 
-        const partner = io.sockets.sockets.get(partnerId);
+        const partner =
+            io.sockets.sockets.get(partnerId);
 
         if (!partner) return;
 
         partner.emit("offer", {
+
             offer: data.offer,
+
             from: socket.id
+
         });
 
     });
@@ -274,17 +385,22 @@ io.on("connection", (socket) => {
 
     socket.on("answer", (data) => {
 
-        const partnerId = partners.get(socket.id);
+        const partnerId =
+            partners.get(socket.id);
 
         if (!partnerId) return;
 
-        const partner = io.sockets.sockets.get(partnerId);
+        const partner =
+            io.sockets.sockets.get(partnerId);
 
         if (!partner) return;
 
         partner.emit("answer", {
+
             answer: data.answer,
+
             from: socket.id
+
         });
 
     });
@@ -295,17 +411,22 @@ io.on("connection", (socket) => {
 
     socket.on("ice-candidate", (data) => {
 
-        const partnerId = partners.get(socket.id);
+        const partnerId =
+            partners.get(socket.id);
 
         if (!partnerId) return;
 
-        const partner = io.sockets.sockets.get(partnerId);
+        const partner =
+            io.sockets.sockets.get(partnerId);
 
         if (!partner) return;
 
         partner.emit("ice-candidate", {
+
             candidate: data.candidate,
+
             from: socket.id
+
         });
 
     });
@@ -313,17 +434,22 @@ io.on("connection", (socket) => {
     // Alternative ICE event name
     socket.on("candidate", (data) => {
 
-        const partnerId = partners.get(socket.id);
+        const partnerId =
+            partners.get(socket.id);
 
         if (!partnerId) return;
 
-        const partner = io.sockets.sockets.get(partnerId);
+        const partner =
+            io.sockets.sockets.get(partnerId);
 
         if (!partner) return;
 
         partner.emit("candidate", {
+
             candidate: data.candidate,
+
             from: socket.id
+
         });
 
     });
@@ -334,11 +460,13 @@ io.on("connection", (socket) => {
 
     socket.on("message", (message) => {
 
-        const partnerId = partners.get(socket.id);
+        const partnerId =
+            partners.get(socket.id);
 
         if (!partnerId) return;
 
-        const partner = io.sockets.sockets.get(partnerId);
+        const partner =
+            io.sockets.sockets.get(partnerId);
 
         if (!partner) return;
 
@@ -347,18 +475,23 @@ io.on("connection", (socket) => {
 
         if (message.length > 2000) return;
 
-        partner.emit("message", message);
+        partner.emit(
+            "message",
+            message
+        );
 
     });
 
     // Support chatMessage
     socket.on("chatMessage", (message) => {
 
-        const partnerId = partners.get(socket.id);
+        const partnerId =
+            partners.get(socket.id);
 
         if (!partnerId) return;
 
-        const partner = io.sockets.sockets.get(partnerId);
+        const partner =
+            io.sockets.sockets.get(partnerId);
 
         if (!partner) return;
 
@@ -366,7 +499,10 @@ io.on("connection", (socket) => {
 
         if (message.length > 2000) return;
 
-        partner.emit("chatMessage", message);
+        partner.emit(
+            "chatMessage",
+            message
+        );
 
     });
 
@@ -376,28 +512,36 @@ io.on("connection", (socket) => {
 
     socket.on("typing", () => {
 
-        const partnerId = partners.get(socket.id);
+        const partnerId =
+            partners.get(socket.id);
 
         if (!partnerId) return;
 
-        const partner = io.sockets.sockets.get(partnerId);
+        const partner =
+            io.sockets.sockets.get(partnerId);
 
         if (partner) {
+
             partner.emit("typing");
+
         }
 
     });
 
     socket.on("stopTyping", () => {
 
-        const partnerId = partners.get(socket.id);
+        const partnerId =
+            partners.get(socket.id);
 
         if (!partnerId) return;
 
-        const partner = io.sockets.sockets.get(partnerId);
+        const partner =
+            io.sockets.sockets.get(partnerId);
 
         if (partner) {
+
             partner.emit("stopTyping");
+
         }
 
     });
@@ -411,7 +555,9 @@ io.on("connection", (socket) => {
         onlineUsers--;
 
         if (onlineUsers < 0) {
+
             onlineUsers = 0;
+
         }
 
         console.log(
@@ -422,12 +568,14 @@ io.on("connection", (socket) => {
         removeFromWaiting(socket.id);
 
         // Remove partner
-        const partnerId = removePartner(socket.id);
+        const partnerId =
+            removePartner(socket.id);
 
         // Notify partner
         if (partnerId) {
 
-            const partner = io.sockets.sockets.get(partnerId);
+            const partner =
+                io.sockets.sockets.get(partnerId);
 
             if (partner) {
 
@@ -440,15 +588,22 @@ io.on("connection", (socket) => {
                         io.sockets.sockets.has(partnerId) &&
                         !partners.has(partnerId)
                     ) {
+
                         findPartner(partner);
+
                     }
 
                 }, 500);
+
             }
+
         }
 
         // Update online users
-        io.emit("onlineUsers", onlineUsers);
+        io.emit(
+            "onlineUsers",
+            onlineUsers
+        );
 
     });
 
@@ -461,7 +616,9 @@ io.on("connection", (socket) => {
 app.get("/api/online", (req, res) => {
 
     res.json({
+
         online: onlineUsers
+
     });
 
 });
@@ -473,12 +630,21 @@ app.get("/api/online", (req, res) => {
 app.get("/health", (req, res) => {
 
     res.status(200).json({
+
         status: "ok",
+
         service: "Qmegle",
+
         onlineUsers: onlineUsers,
+
         waitingUsers: waitingUsers.length,
+
         activeChats: partners.size / 2,
-        uptime: Math.floor(process.uptime())
+
+        uptime: Math.floor(
+            process.uptime()
+        )
+
     });
 
 });
@@ -490,7 +656,10 @@ app.get("/health", (req, res) => {
 app.get("/", (req, res) => {
 
     res.sendFile(
-        path.join(__dirname, "index.html")
+        path.join(
+            __dirname,
+            "index.html"
+        )
     );
 
 });
@@ -500,33 +669,52 @@ app.get("/", (req, res) => {
 // ==========================================
 
 const seoPages = [
+
     "about",
+
     "contact",
+
     "privacy",
+
     "terms",
+
+    "random-video-chat",
+
     "free-video-chat",
+
     "chat-with-strangers",
+
     "random-text-chat",
+
     "omegle-alternative",
+
     "free-random-chat"
+
 ];
 
 seoPages.forEach((page) => {
 
     app.get(`/${page}`, (req, res) => {
 
-        const filePath = path.join(
-            __dirname,
-            `${page}.html`
-        );
+        const filePath =
+            path.join(
+                __dirname,
+                `${page}.html`
+            );
 
-        res.sendFile(filePath, (err) => {
+        res.sendFile(
+            filePath,
+            (err) => {
 
-            if (err) {
-                res.status(404).send("Page not found");
+                if (err) {
+
+                    res.status(404)
+                       .send("Page not found");
+
+                }
+
             }
-
-        });
+        );
 
     });
 
@@ -538,7 +726,8 @@ seoPages.forEach((page) => {
 
 app.use((req, res) => {
 
-    res.status(404).send("Page not found");
+    res.status(404)
+       .send("Page not found");
 
 });
 
@@ -548,10 +737,15 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
 
-    console.error("SERVER ERROR:", err);
+    console.error(
+        "SERVER ERROR:",
+        err
+    );
 
     res.status(500).json({
+
         error: "Internal server error"
+
     });
 
 });
@@ -560,20 +754,70 @@ app.use((err, req, res, next) => {
 // START SERVER
 // ==========================================
 
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(
+    PORT,
+    "0.0.0.0",
+    () => {
 
-    console.log("");
-    console.log("======================================");
-    console.log("        QMEGLE SERVER STARTED");
-    console.log("======================================");
-    console.log(`Port: ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || "production"}`);
-    console.log("Socket.IO: ENABLED");
-    console.log("WebRTC Signaling: ENABLED");
-    console.log("Random Matching: ENABLED");
-    console.log("Online Users: ENABLED");
-    console.log("Health Check: /health");
-    console.log("======================================");
-    console.log("");
+        console.log("");
 
-});
+        console.log(
+            "======================================"
+        );
+
+        console.log(
+            "        QMEGLE SERVER STARTED"
+        );
+
+        console.log(
+            "======================================"
+        );
+
+        console.log(
+            `Port: ${PORT}`
+        );
+
+        console.log(
+            `Environment: ${
+                process.env.NODE_ENV ||
+                "production"
+            }`
+        );
+
+        console.log(
+            "Socket.IO: ENABLED"
+        );
+
+        console.log(
+            "WebRTC Signaling: ENABLED"
+        );
+
+        console.log(
+            "Random Matching: ENABLED"
+        );
+
+        console.log(
+            "Online Users: ENABLED"
+        );
+
+        console.log(
+            "Sitemap: ENABLED"
+        );
+
+        console.log(
+            "Robots.txt: ENABLED"
+        );
+
+        console.log(
+            "Health Check: /health"
+        );
+
+        console.log(
+            "======================================"
+        );
+
+        console.log("");
+
+    }
+);
+```
