@@ -1,4 +1,3 @@
-```javascript
 // ==========================================
 // QMEGLE SERVER - RANDOM CHAT / VIDEO CHAT
 // Designed for high concurrent connections
@@ -42,7 +41,6 @@ app.get("/sitemap.xml", (req, res) => {
                 .status(404)
                 .type("text/plain")
                 .send("Sitemap not found");
-
         }
 
         res.status(200);
@@ -53,9 +51,7 @@ app.get("/sitemap.xml", (req, res) => {
         );
 
         res.send(data);
-
     });
-
 });
 
 // ==========================================
@@ -72,12 +68,11 @@ app.get("/robots.txt", (req, res) => {
     );
 
     res.send(
-`User-agent: *
-Allow: /
-
-Sitemap: https://qmegle.onrender.com/sitemap.xml`
+        "User-agent: *\n" +
+        "Allow: /\n" +
+        "\n" +
+        "Sitemap: https://qmegle.onrender.com/sitemap.xml"
     );
-
 });
 
 // ==========================================
@@ -107,20 +102,16 @@ const io = new Server(server, {
     pingTimeout: 60000,
 
     maxHttpBufferSize: 100000
-
 });
 
 // ==========================================
 // USER MANAGEMENT
 // ==========================================
 
-// Waiting users
 const waitingUsers = [];
 
-// Current partners
 const partners = new Map();
 
-// Connected users
 let onlineUsers = 0;
 
 // ==========================================
@@ -144,7 +135,6 @@ function removeFromWaiting(socketId) {
 function getPartner(socketId) {
 
     return partners.get(socketId);
-
 }
 
 function setPartners(user1, user2) {
@@ -152,7 +142,6 @@ function setPartners(user1, user2) {
     partners.set(user1, user2);
 
     partners.set(user2, user1);
-
 }
 
 function removePartner(socketId) {
@@ -164,11 +153,9 @@ function removePartner(socketId) {
     if (partnerId) {
 
         partners.delete(partnerId);
-
     }
 
     return partnerId;
-
 }
 
 // ==========================================
@@ -177,59 +164,43 @@ function removePartner(socketId) {
 
 function findPartner(socket) {
 
-    // Remove current user from waiting list first
     removeFromWaiting(socket.id);
 
-    // If already connected to someone
     if (partners.has(socket.id)) {
 
         return;
-
     }
 
-    // Find available user
     while (waitingUsers.length > 0) {
 
         const partnerId = waitingUsers.shift();
 
-        // Ignore invalid socket
         const partnerSocket =
             io.sockets.sockets.get(partnerId);
 
         if (!partnerSocket) {
 
             continue;
-
         }
 
-        // Do not match with itself
         if (partnerId === socket.id) {
 
             continue;
-
         }
 
-        // Do not match someone already connected
         if (partners.has(partnerId)) {
 
             continue;
-
         }
 
-        // Create connection
         setPartners(socket.id, partnerId);
 
-        // Tell both users
         socket.emit("matched", {
-
             partnerId: partnerId
-
         });
 
         partnerSocket.emit("matched", {
-
             partnerId: socket.id
-
         });
 
         console.log(
@@ -237,10 +208,8 @@ function findPartner(socket) {
         );
 
         return;
-
     }
 
-    // Nobody available
     waitingUsers.push(socket.id);
 
     socket.emit("waiting");
@@ -248,7 +217,6 @@ function findPartner(socket) {
     console.log(
         `WAITING: ${socket.id} | Queue: ${waitingUsers.length}`
     );
-
 }
 
 // ==========================================
@@ -263,13 +231,11 @@ io.on("connection", (socket) => {
         `CONNECTED: ${socket.id} | Online: ${onlineUsers}`
     );
 
-    // Send current online users
     socket.emit(
         "onlineUsers",
         onlineUsers
     );
 
-    // Broadcast online count
     io.emit(
         "onlineUsers",
         onlineUsers
@@ -282,14 +248,11 @@ io.on("connection", (socket) => {
     socket.on("start", () => {
 
         findPartner(socket);
-
     });
 
-    // Also support "startChat"
     socket.on("startChat", () => {
 
         findPartner(socket);
-
     });
 
     // ======================================
@@ -303,7 +266,6 @@ io.on("connection", (socket) => {
 
         removeFromWaiting(socket.id);
 
-        // Tell old partner
         if (oldPartnerId) {
 
             const oldPartner =
@@ -313,16 +275,11 @@ io.on("connection", (socket) => {
 
                 oldPartner.emit("partnerLeft");
 
-                // Put old partner back into queue
                 findPartner(oldPartner);
-
             }
-
         }
 
-        // Find new partner for current user
         findPartner(socket);
-
     });
 
     // ======================================
@@ -344,13 +301,10 @@ io.on("connection", (socket) => {
             if (partner) {
 
                 partner.emit("partnerLeft");
-
             }
-
         }
 
         socket.emit("stopped");
-
     });
 
     // ======================================
@@ -370,13 +324,9 @@ io.on("connection", (socket) => {
         if (!partner) return;
 
         partner.emit("offer", {
-
             offer: data.offer,
-
             from: socket.id
-
         });
-
     });
 
     // ======================================
@@ -396,13 +346,9 @@ io.on("connection", (socket) => {
         if (!partner) return;
 
         partner.emit("answer", {
-
             answer: data.answer,
-
             from: socket.id
-
         });
-
     });
 
     // ======================================
@@ -422,16 +368,12 @@ io.on("connection", (socket) => {
         if (!partner) return;
 
         partner.emit("ice-candidate", {
-
             candidate: data.candidate,
-
             from: socket.id
-
         });
-
     });
 
-    // Alternative ICE event name
+    // Alternative ICE event
     socket.on("candidate", (data) => {
 
         const partnerId =
@@ -445,13 +387,9 @@ io.on("connection", (socket) => {
         if (!partner) return;
 
         partner.emit("candidate", {
-
             candidate: data.candidate,
-
             from: socket.id
-
         });
-
     });
 
     // ======================================
@@ -470,7 +408,6 @@ io.on("connection", (socket) => {
 
         if (!partner) return;
 
-        // Limit message size
         if (typeof message !== "string") return;
 
         if (message.length > 2000) return;
@@ -479,7 +416,6 @@ io.on("connection", (socket) => {
             "message",
             message
         );
-
     });
 
     // Support chatMessage
@@ -503,7 +439,6 @@ io.on("connection", (socket) => {
             "chatMessage",
             message
         );
-
     });
 
     // ======================================
@@ -523,9 +458,7 @@ io.on("connection", (socket) => {
         if (partner) {
 
             partner.emit("typing");
-
         }
-
     });
 
     socket.on("stopTyping", () => {
@@ -541,9 +474,7 @@ io.on("connection", (socket) => {
         if (partner) {
 
             partner.emit("stopTyping");
-
         }
-
     });
 
     // ======================================
@@ -557,21 +488,17 @@ io.on("connection", (socket) => {
         if (onlineUsers < 0) {
 
             onlineUsers = 0;
-
         }
 
         console.log(
             `DISCONNECTED: ${socket.id} | Reason: ${reason}`
         );
 
-        // Remove from waiting queue
         removeFromWaiting(socket.id);
 
-        // Remove partner
         const partnerId =
             removePartner(socket.id);
 
-        // Notify partner
         if (partnerId) {
 
             const partner =
@@ -581,7 +508,6 @@ io.on("connection", (socket) => {
 
                 partner.emit("partnerLeft");
 
-                // Automatically search for another user
                 setTimeout(() => {
 
                     if (
@@ -590,21 +516,16 @@ io.on("connection", (socket) => {
                     ) {
 
                         findPartner(partner);
-
                     }
 
                 }, 500);
-
             }
-
         }
 
-        // Update online users
         io.emit(
             "onlineUsers",
             onlineUsers
         );
-
     });
 
 });
@@ -616,11 +537,8 @@ io.on("connection", (socket) => {
 app.get("/api/online", (req, res) => {
 
     res.json({
-
         online: onlineUsers
-
     });
-
 });
 
 // ==========================================
@@ -644,9 +562,7 @@ app.get("/health", (req, res) => {
         uptime: Math.floor(
             process.uptime()
         )
-
     });
-
 });
 
 // ==========================================
@@ -661,7 +577,6 @@ app.get("/", (req, res) => {
             "index.html"
         )
     );
-
 });
 
 // ==========================================
@@ -671,23 +586,15 @@ app.get("/", (req, res) => {
 const seoPages = [
 
     "about",
-
     "contact",
-
     "privacy",
-
     "terms",
 
     "random-video-chat",
-
     "free-video-chat",
-
     "chat-with-strangers",
-
     "random-text-chat",
-
     "omegle-alternative",
-
     "free-random-chat"
 
 ];
@@ -710,14 +617,10 @@ seoPages.forEach((page) => {
 
                     res.status(404)
                        .send("Page not found");
-
                 }
-
             }
         );
-
     });
-
 });
 
 // ==========================================
@@ -728,7 +631,6 @@ app.use((req, res) => {
 
     res.status(404)
        .send("Page not found");
-
 });
 
 // ==========================================
@@ -747,7 +649,6 @@ app.use((err, req, res, next) => {
         error: "Internal server error"
 
     });
-
 });
 
 // ==========================================
@@ -817,7 +718,5 @@ server.listen(
         );
 
         console.log("");
-
     }
 );
-```
