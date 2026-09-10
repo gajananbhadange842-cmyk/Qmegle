@@ -43,6 +43,47 @@ app.get("/sitemap.xml", (req, res) => {
                 .send("Sitemap not found");
         }
 
+        // Remove UTF-8 BOM if present
+        data = data.replace(/^\uFEFF/, "");
+
+        // Remove accidental Markdown code fences
+        data = data.replace(/^```xml\s*/i, "");
+        data = data.replace(/^```\s*/i, "");
+        data = data.replace(/\s*```\s*$/i, "");
+
+        // Remove anything before the XML declaration
+        const xmlStart = data.indexOf("<?xml");
+
+        if (xmlStart > 0) {
+            data = data.substring(xmlStart);
+        }
+
+        // If XML declaration is missing, start from <urlset
+        if (!data.trim().startsWith("<?xml")) {
+
+            const urlsetStart = data.indexOf("<urlset");
+
+            if (urlsetStart !== -1) {
+                data = data.substring(urlsetStart);
+            }
+        }
+
+        data = data.trim();
+
+        // Basic XML validation
+        if (
+            !data.includes("<urlset") ||
+            !data.includes("</urlset>")
+        ) {
+
+            console.error("INVALID SITEMAP XML");
+
+            return res
+                .status(500)
+                .type("text/plain")
+                .send("Invalid sitemap XML");
+        }
+
         res.status(200);
 
         res.set(
